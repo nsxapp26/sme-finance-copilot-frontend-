@@ -16,8 +16,10 @@ import {
   ArrowRight,
   ShieldAlert,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const SimulatorPage: React.FC = () => {
+  const t = useT();
   const {
     resetSimulation,
     addToast,
@@ -28,7 +30,7 @@ export const SimulatorPage: React.FC = () => {
   // implemented, so the playback is presented as a stored catalogue reading.
   const [chaosEffects, setChaosEffects] = useState<{ available: boolean; reason: string }>({
     available: false,
-    reason: "Backend capabilities are unknown.",
+    reason: t("sim.1"),
   });
   const [selectedScenarioId, setSelectedScenarioId] = useState<string>("chaos-shop-dropout");
   const [loading, setLoading] = useState(true);
@@ -54,7 +56,7 @@ export const SimulatorPage: React.FC = () => {
     const [whole, fraction = ""] = value.split(".");
     return `${whole.length > 2 ? whole.slice(0, -2) : "0"}.${whole.padStart(2, "0").slice(-2)}${fraction}`;
   };
-  const amount = (value: number | string | null | undefined) => value == null ? "No data" : Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
+  const amount = (value: number | string | null | undefined) => value == null ? t("sim.2") : Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 });
   const setBaseline = (value: OrderContext) => {
     setSimUnitPrice(value.unit_price);
     // Blank means preserve each shop's actual cost; never impose an average.
@@ -67,7 +69,7 @@ export const SimulatorPage: React.FC = () => {
     if (apiClient.isDemoMode()) {
       apiClient.getChaosScenarios().then((value) => {
         setChaosEnvelope(value);
-        setError("Demo mode: set VITE_USE_MOCK=false and connect the backend before calculating or saving a plan.");
+        setError(t("sim.r.demo"));
       }).catch((err) => setError(err.message)).finally(() => setLoading(false));
       return;
     }
@@ -82,7 +84,7 @@ export const SimulatorPage: React.FC = () => {
           .catch(() => null);
         setChaosEffects({
           available: declared?.available === true,
-          reason: declared?.reason || "The backend has not declared support for narrative effects.",
+          reason: declared?.reason || t("sim.3"),
         });
         setLoading(false);
       }).catch((err) => { setError(err.message); setLoading(false); });
@@ -114,9 +116,9 @@ export const SimulatorPage: React.FC = () => {
       setSavedPlans(list.data);
       const replayable = list.data.filter((plan) => plan.replayAvailable).length;
       setSavedNote(list.data.length
-        ? `${list.data.length} saved plans · ${replayable} replayable`
-        : "No saved plans for this project.");
-    } catch (err) { setSavedPlans(null); setSavedNote(`Could not load saved plans: ${(err as Error).message}`); }
+        ? t("sim.tpl.saved", { n: list.data.length, r: replayable })
+        : t("sim.4"));
+    } catch (err) { setSavedPlans(null); setSavedNote(t("sim.tpl.loadFail", { error: (err as Error).message })); }
   };
   const handleReset = () => { if (context) setBaseline(context); resetSimulation(); };
   const handleSave = async () => {
@@ -124,12 +126,12 @@ export const SimulatorPage: React.FC = () => {
     busySave.current = true; setSaving(true);
     try {
       const result = await apiClient.simulateOrder(context, scenario, true);
-      if (!result.persisted || !result.simulationId) throw new Error("Could not save the plan. Check the database connection.");
+      if (!result.persisted || !result.simulationId) throw new Error(t("sim.x.1"));
       const simulationId = result.simulationId;
       // Read the stored row back in the same scope before reporting success.
       const stored = await apiClient.readSimulation(simulationId, scope);
       if (!stored.data?.resultHash || !stored.data.request || !stored.data.results) {
-        throw new Error("The plan was saved, but the read-back was incomplete. Save is not confirmed.");
+        throw new Error(t("sim.x.2"));
       }
       // Replay the saved snapshot to prove the stored plan reproduces.
       const replay = await apiClient.replaySimulation(simulationId, { ...scope, inputRevision: result.context?.inputRevision ?? null });
@@ -137,14 +139,14 @@ export const SimulatorPage: React.FC = () => {
       await refreshSavedPlans(scope);
       addToast({
         type: replay.data.reproduced && !differences.length ? "success" : "warning",
-        title: replay.data.reproduced ? "Saved and verified" : "Saved, but replay differs",
-        message: `Simulation ID: ${simulationId} · Engine ${stored.data.engine || "Unknown"}`
+        title: replay.data.reproduced ? t("sim.5") : t("sim.6"),
+        message: t("sim.tpl.idEngine", { id: simulationId, engine: stored.data.engine || t("sim.7") })
           + ` · resultHash ${stored.data.resultHash.slice(0, 12)}…`
-          + ` · Replay ${replay.data.reproduced ? "matches" : "does not match"}`
-          + (differences.length ? ` · Context differences: ${differences.join(", ")}` : ""),
+          + ` · Replay ${replay.data.reproduced ? "matches" : t("sim.8")}`
+          + (differences.length ? ` · ${t("sim.tpl.diff", { list: differences.join(", ") })}` : ""),
         duration: 12000,
       });
-    } catch (err) { addToast({ type: "error", title: "Save failed", message: (err as Error).message, duration: 10000 }); }
+    } catch (err) { addToast({ type: "error", title: t("sim.9"), message: (err as Error).message, duration: 10000 }); }
     finally { busySave.current = false; setSaving(false); }
   };
   if (!loading && !context && error && !apiClient.isDemoMode()) return <StateRenderer currentMode="error" errorMessage={error} onRetry={loadData}>{null}</StateRenderer>;
@@ -165,16 +167,16 @@ export const SimulatorPage: React.FC = () => {
     <StateRenderer onRetry={loadData}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-display font-bold text-ink">
-                Business Simulation & Chaos Rehearsal
+                {t("sim.10")}
               </h1>
               <DataKindBadge kind="simulated" size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Change price, deposit, and cost assumptions, and rehearse crisis scenarios without affecting live data.
+              {t("sim.11")}
             </p>
           </div>
 
@@ -185,7 +187,7 @@ export const SimulatorPage: React.FC = () => {
               className="px-3 py-1.5 bg-white border border-borderLine hover:border-brand/40 text-xs font-semibold rounded-btn flex items-center gap-1.5 transition-colors"
             >
               <RotateCcw className="w-3.5 h-3.5 text-ink-muted" />
-              <span>Reset</span>
+              <span>{t("sim.12")}</span>
             </button>
 
             <button
@@ -195,7 +197,7 @@ export const SimulatorPage: React.FC = () => {
               className="px-4 py-1.5 bg-brand hover:bg-brand-dark text-white text-xs font-bold rounded-btn flex items-center gap-1.5 shadow-sm transition-all"
             >
               <Save className="w-3.5 h-3.5" />
-              <span>Save new simulation plan</span>
+              <span>{t("sim.13")}</span>
             </button>
           </div>
         </div>
@@ -217,7 +219,7 @@ export const SimulatorPage: React.FC = () => {
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-1.5">
                 <Sliders className="w-4 h-4 text-brand" />
-                <span>Assumption controls (slider and input)</span>
+                <span>{t("sim.14")}</span>
               </h3>
               <DataKindBadge kind="simulated" size="sm" />
             </div>
@@ -225,7 +227,7 @@ export const SimulatorPage: React.FC = () => {
             {/* 1. Deposit Percent */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-ink">Buyer deposit (%)</span>
+                <span className="font-medium text-ink">{t("sim.15")}</span>
                 <input
                   type="number"
                   min="0"
@@ -250,7 +252,7 @@ export const SimulatorPage: React.FC = () => {
             {/* 2. Selling Price per Box */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-ink">Selling price per meal box (฿)</span>
+                <span className="font-medium text-ink">{t("sim.16")}</span>
                 <input
                   type="number"
                   min="0"
@@ -275,13 +277,13 @@ export const SimulatorPage: React.FC = () => {
             {/* 3. Cost per Box */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-ink">Ingredient and production cost per box (฿)</span>
+                <span className="font-medium text-ink">{t("sim.17")}</span>
                 <input
                   type="number"
                   min="0"
                   max="1000"
                   step="0.01"
-                  placeholder="Original cost"
+                  placeholder={t("sim.18")}
                   value={simCostPerUnit}
                   onChange={(e) => setSimCostPerUnit(e.target.value)}
                   className="w-20 px-2 py-0.5 border border-slate-200 rounded text-right font-mono text-xs font-bold"
@@ -292,8 +294,8 @@ export const SimulatorPage: React.FC = () => {
                 min="0"
                 max="1000"
                 step="0.01"
-                placeholder="Original cost"
-                title="Set the same cost for every shop"
+                placeholder={t("sim.18")}
+                title={t("sim.19")}
                 value={simCostPerUnit === "" ? context?.shops[0]?.cost_per_unit || "0" : simCostPerUnit}
                 onChange={(e) => setSimCostPerUnit(e.target.value)}
                 className="w-full accent-brand cursor-pointer"
@@ -303,7 +305,7 @@ export const SimulatorPage: React.FC = () => {
             {/* 4. Payment Terms Days */}
             <div className="space-y-1.5">
               <div className="flex items-center justify-between text-xs">
-                <span className="font-medium text-ink">Payment terms for the final installment (days)</span>
+                <span className="font-medium text-ink">{t("sim.20")}</span>
                 <input
                   type="number"
                   min="0"
@@ -329,10 +331,10 @@ export const SimulatorPage: React.FC = () => {
           <div className="lg:col-span-6 bg-white p-5 rounded-card border border-borderLine shadow-soft-sm space-y-4">
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink">
-                Compare results: Plan A (baseline) vs. Plan B (simulation)
+                {t("sim.w1")}
               </h3>
               <span className="text-[11px] text-ink-muted">
-                {context?.order_ref || "Demo mode"} · This order only
+                {t("sim.r.only", { order: context?.order_ref || t("sim.21") })}
                 {savedNote ? ` · ${savedNote}` : ""}
               </span>
             </div>
@@ -341,16 +343,16 @@ export const SimulatorPage: React.FC = () => {
               {/* Row 1: Net Profit */}
               <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-ink block">Order profit before other expenses</span>
-                  <span className="text-[10px] text-ink-muted">Revenue minus total costs</span>
+                  <span className="font-bold text-ink block">{t("sim.22")}</span>
+                  <span className="text-[10px] text-ink-muted">{t("sim.23")}</span>
                 </div>
                 <div className="flex items-center gap-4 font-mono text-right">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Baseline Plan A</span>
+                    <span className="text-[10px] text-slate-400 block">{t("sim.24")}</span>
                     <span className="font-bold text-ink">฿{amount(comparison?.data.planA.totalProfit)}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-brand block">Simulated Plan B</span>
+                    <span className="text-[10px] text-brand block">{t("sim.25")}</span>
                     <span className="font-extrabold text-brand">฿{amount(simProfit)}</span>
                   </div>
                 </div>
@@ -359,16 +361,16 @@ export const SimulatorPage: React.FC = () => {
               {/* Row 2: Minimum Cash Balance */}
               <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-ink block">Lowest cash balance among participating shops</span>
-                  <span className="text-[10px] text-ink-muted">Cash flow for this order only</span>
+                  <span className="font-bold text-ink block">{t("sim.26")}</span>
+                  <span className="text-[10px] text-ink-muted">{t("sim.27")}</span>
                 </div>
                 <div className="flex items-center gap-4 font-mono text-right">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Baseline Plan A</span>
+                    <span className="text-[10px] text-slate-400 block">{t("sim.24")}</span>
                     <span className="font-bold text-danger">฿{amount(comparison?.data.planA.minimumShopCash)}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-brand block">Simulated Plan B</span>
+                    <span className="text-[10px] text-brand block">{t("sim.25")}</span>
                     <span className={`font-extrabold ${Number(simMinCash) < 0 ? "text-danger" : "text-emerald-700"}`}>
                       ฿{amount(simMinCash)}
                     </span>
@@ -379,16 +381,16 @@ export const SimulatorPage: React.FC = () => {
               {/* Row 3: Funding Gap */}
               <div className="p-3 bg-slate-50 rounded-xl flex items-center justify-between">
                 <div>
-                  <span className="font-bold text-ink block">Remaining working-capital gap</span>
-                  <span className="text-[10px] text-ink-muted">Amount to borrow or add</span>
+                  <span className="font-bold text-ink block">{t("sim.x.3")}</span>
+                  <span className="text-[10px] text-ink-muted">{t("sim.28")}</span>
                 </div>
                 <div className="flex items-center gap-4 font-mono text-right">
                   <div>
-                    <span className="text-[10px] text-slate-400 block">Baseline Plan A</span>
+                    <span className="text-[10px] text-slate-400 block">{t("sim.24")}</span>
                     <span className="font-bold text-danger">฿{amount(comparison?.data.planA.totalFundingGap)}</span>
                   </div>
                   <div>
-                    <span className="text-[10px] text-brand block">Simulated Plan B</span>
+                    <span className="text-[10px] text-brand block">{t("sim.25")}</span>
                     <span className="font-extrabold text-emerald-700">
                       ฿{amount(simFundingGap)}
                     </span>
@@ -399,7 +401,7 @@ export const SimulatorPage: React.FC = () => {
 
             {/* Insight Callout */}
             <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-xs text-emerald-900 leading-relaxed">
-              <strong>Simulation summary:</strong> {pending ? "Calculating with the backend…" : error || (comparison ? `Funding gap: ฿${amount(simFundingGap)} · Remaining capacity shortfall: ${amount(comparison.data.planB.deficitBoxesPerDay)} per day · Order only; excludes other business cash flows.` : "No calculation results yet.")}
+              <strong>{t("sim.29")}</strong> {pending ? t("sim.30") : error || (comparison ? t("sim.tpl.summary", { gap: amount(simFundingGap), short: amount(comparison.data.planB.deficitBoxesPerDay) }) : t("sim.31"))}
             </div>
           </div>
         </div>

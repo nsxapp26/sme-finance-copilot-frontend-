@@ -22,7 +22,8 @@ export function useTilt(disabled: boolean) {
 
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") return;
-      const el = (event.target as Element | null)?.closest<HTMLElement>("[data-tilt]") ?? null;
+      // การ์ดที่มี data-tilt เอง หรือการ์ดลูกของ grid ที่มี data-tilt-grid
+      const el = (event.target as Element | null)?.closest<HTMLElement>("[data-tilt], [data-tilt-grid] > *") ?? null;
       if (current && current !== el) reset(current);
       current = el;
       if (!el) return;
@@ -31,8 +32,10 @@ export function useTilt(disabled: boolean) {
         const rect = el.getBoundingClientRect();
         const px = (event.clientX - rect.left) / rect.width; // 0..1
         const py = (event.clientY - rect.top) / rect.height;
-        el.style.setProperty("--ry", `${((px - 0.5) * 2 * MAX_DEG).toFixed(2)}deg`);
-        el.style.setProperty("--rx", `${((0.5 - py) * 2 * MAX_DEG).toFixed(2)}deg`);
+        // การ์ดใหญ่เอียงน้อยลง จะได้ไม่ดูเวียนหัว
+        const deg = MAX_DEG * Math.min(1, 280 / Math.max(rect.width, 1));
+        el.style.setProperty("--ry", `${((px - 0.5) * 2 * deg).toFixed(2)}deg`);
+        el.style.setProperty("--rx", `${((0.5 - py) * 2 * deg).toFixed(2)}deg`);
         el.style.setProperty("--mx", `${(px * 100).toFixed(1)}%`);
         el.style.setProperty("--my", `${(py * 100).toFixed(1)}%`);
         el.classList.add("is-tilting");

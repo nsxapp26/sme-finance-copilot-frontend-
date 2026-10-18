@@ -18,8 +18,10 @@ import {
   CheckCircle,
   HelpCircle,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const FunderPage: React.FC = () => {
+  const t = useT();
   const { setCurrentPage, addToast } = useAppStore();
   const [selectedProjectIds, setSelectedProjectIds] = useState<string[]>([]);
   const state = useEnvelope<FunderProject[]>(useCallback(() => apiClient.getFunderProjects(), []));
@@ -27,9 +29,9 @@ export const FunderPage: React.FC = () => {
   const mode = envelopeMode(state, (rows) => rows.length === 0);
   const capabilityState = useCapabilities();
   const canRequestInfo = capabilityState.isAvailable("funderInfoRequest");
-  const infoBlockedReason = capabilityState.reasonFor("funderInfoRequest", "The backend does not support additional information requests yet.");
+  const infoBlockedReason = capabilityState.reasonFor("funderInfoRequest", t("funder.x.1"));
   const amount = (value: number | null | undefined) =>
-    value == null ? "No data" : `฿${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    value == null ? t("funder.1") : `฿${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   const rbacOff = (funderEnvelope?.missing || []).includes("rbac_not_enforced");
 
   const handleToggleSelectProject = (id: string) => {
@@ -45,8 +47,8 @@ export const FunderPage: React.FC = () => {
     // the project owner and no request record is created.
     addToast({
       type: "warning",
-      title: "Document requests are not available yet",
-      message: `No request was submitted for '${proj.title}' · ${infoBlockedReason}`,
+      title: t("funder.2"),
+      message: t("funder.tpl.noRequest", { title: proj.title, reason: infoBlockedReason }),
       duration: 9000,
     });
   };
@@ -69,8 +71,8 @@ export const FunderPage: React.FC = () => {
     return (
       <StateRenderer
         currentMode={mode === "error" ? "error" : mode === "unavailable" ? "unavailable" : "insufficient_data"}
-        errorMessage={error || "Could not load funder projects from the backend"}
-        unavailableReason="No projects are available for funder review."
+        errorMessage={error || t("funder.3")}
+        unavailableReason={t("funder.x.2")}
         missingItems={funderEnvelope?.missing || []}
         onRetry={loadData}
         onAddData={() => setCurrentPage("swarm")}
@@ -89,19 +91,19 @@ export const FunderPage: React.FC = () => {
     <StateRenderer onRetry={loadData}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold">
                 <Building className="w-4 h-4" />
               </div>
               <h1 className="text-xl font-display font-bold text-ink">
-                Funder & Investor Workspace
+                {t("funder.4")}
               </h1>
               <DataKindBadge kind={funderEnvelope?.kind ?? "forecast"} size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Review saved projects and evidence levels · Selections and totals are local review aids, not actual funding allocations.
+              {t("funder.5")}
             </p>
           </div>
 
@@ -111,7 +113,7 @@ export const FunderPage: React.FC = () => {
               onClick={() => setCurrentPage("swarm")}
               className="px-3.5 py-1.5 bg-brand text-white rounded-btn text-xs font-semibold hover:bg-brand-dark flex items-center gap-1 transition-all shadow-sm"
             >
-              <span>View the 300-box SWARM workspace</span>
+              <span>{t("funder.x.3")}</span>
               <ArrowRight className="w-3 h-3" />
             </button>
           </div>
@@ -122,14 +124,14 @@ export const FunderPage: React.FC = () => {
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">
-                Selected in this browser · Not saved and no funds allocated
+                {t("funder.6")}
               </span>
               <h3 className="text-sm font-display font-bold text-ink">
-                {selectedProjects.length} of {projects.length} listed projects selected
+                {t("funder.m1", { selectedProjects: selectedProjects.length, projects: projects.length })}
               </h3>
             </div>
             <div className="flex flex-wrap items-center gap-2 text-xs font-mono">
-              {selectedProjects.length === 0 && <span className="text-ink-muted font-sans">No project selected yet</span>}
+              {selectedProjects.length === 0 && <span className="text-ink-muted font-sans">{t("funder.7")}</span>}
               {selectedProjects.map((proj) => (
                 <span key={proj.id} className="rounded-chip border border-brand/30 bg-brand/5 px-2 py-0.5">
                   <span className="font-sans">{proj.title}</span>: <span className="font-bold text-brand">{amount(proj.targetFunding)}</span>
@@ -150,11 +152,11 @@ export const FunderPage: React.FC = () => {
 
           <div className="flex items-center justify-between text-[11px] text-ink-muted">
             <span>
-              {selectedProjectIds.length} projects selected · This selection stays in this browser and does not commit funding.
-              {rbacOff ? " · Access enforcement is off; displayed roles do not verify identity." : ""}
+              {t("funder.m2", { selectedProjectIds: selectedProjectIds.length })}
+              {rbacOff ? t("funder.8") : ""}
             </span>
             <span className="font-mono">
-              {selectedProjects.length}/{projects.length} projects
+              {t("funder.m3", { selectedProjects: selectedProjects.length, projects: projects.length })}
             </span>
           </div>
         </div>
@@ -163,10 +165,10 @@ export const FunderPage: React.FC = () => {
         <div className="space-y-4">
           <h3 className="text-sm font-display font-bold text-ink flex items-center gap-2">
             <FileCheck2 className="w-4 h-4 text-brand" />
-            <span>Projects passing initial screening</span>
+            <span>{t("funder.9")}</span>
           </h3>
 
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div data-tilt-grid className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {projects.map((proj) => {
               const isSelected = selectedProjectIds.includes(proj.id);
               return (
@@ -203,15 +205,15 @@ export const FunderPage: React.FC = () => {
                     {/* Stats */}
                     <div className="grid grid-cols-2 gap-2 p-2.5 bg-slate-50 rounded-xl text-xs mb-3">
                       <div>
-                        <span className="text-[10px] text-ink-muted block">Funding requested:</span>
+                        <span className="text-[10px] text-ink-muted block">{t("funder.10")}</span>
                         <span className="font-bold font-mono text-ink">
                           ฿{proj.targetFunding.toLocaleString()}
                         </span>
                       </div>
                       <div>
-                        <span className="text-[10px] text-ink-muted block">Estimated return:</span>
+                        <span className="text-[10px] text-ink-muted block">{t("funder.11")}</span>
                         <span className="font-bold font-mono text-emerald-700">
-                          {proj.roiEstimatePercent}% per year
+                          {t("funder.m4", { roiEstimatePercent: proj.roiEstimatePercent })}
                         </span>
                       </div>
                     </div>
@@ -232,10 +234,10 @@ export const FunderPage: React.FC = () => {
                         {proj.recommendationDecision === "insufficient_data" && <HelpCircle className="w-3.5 h-3.5 text-slate-500" />}
                         <span>
                           {proj.recommendationDecision === "recommend"
-                            ? "Recommend full funding"
+                            ? t("funder.12")
                             : proj.recommendationDecision === "reduced_amount_possible"
-                            ? "Consider a smaller amount to reduce risk"
-                            : "Insufficient information / Do not invest yet"}
+                            ? t("funder.13")
+                            : t("funder.14")}
                         </span>
                       </div>
                       <p className="text-[10px] leading-tight">{proj.recommendationNote}</p>
@@ -243,7 +245,7 @@ export const FunderPage: React.FC = () => {
 
                     {/* Documents verified status */}
                     <div className="space-y-1 text-[11px] text-ink-muted">
-                      <span className="font-semibold block text-[10px] text-ink">Supporting documents:</span>
+                      <span className="font-semibold block text-[10px] text-ink">{t("funder.15")}</span>
                       {proj.evidenceDocuments.map((doc, idx) => (
                         <div key={idx} className="flex items-center gap-1.5">
                           {doc.verified ? (
@@ -269,7 +271,7 @@ export const FunderPage: React.FC = () => {
                             : "bg-brand text-white hover:bg-brand-dark"
                         }`}
                       >
-                        {isSelected ? "✓ Selected for review (not allocated)" : "+ Add to watchlist"}
+                        {isSelected ? t("funder.16") : t("funder.17")}
                       </button>
                     ) : (
                       <button
@@ -280,7 +282,7 @@ export const FunderPage: React.FC = () => {
                         className="w-full py-2 rounded-btn text-xs font-medium bg-slate-100 text-ink hover:bg-slate-200 transition-colors flex items-center justify-center gap-1"
                       >
                         <Lock className="w-3.5 h-3.5" />
-                        <span>{canRequestInfo ? "Request access to contract documents" : "Document requests are not available yet"}</span>
+                        <span>{canRequestInfo ? t("funder.18") : t("funder.2")}</span>
                       </button>
                     )}
                   </div>

@@ -14,6 +14,7 @@ import {
   ChevronRight,
   ShieldCheck,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 interface ChaosPlaybackProps {
   scenarios: ChaosScenario[];
@@ -34,6 +35,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
   effectsAvailable = false,
   effectsReason = "The backend has not declared support for narrative effects.",
 }) => {
+  const t = useT();
   const { setCurrentPage, addToast } = useAppStore();
   const currentScenario =
     scenarios.find((s) => s.id === selectedScenarioId) || scenarios[0];
@@ -70,8 +72,8 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
   const handleApplyContingency = (option: ContingencyOption) => {
     addToast({
       type: "info",
-      title: "Open a page to continue",
-      message: `${option.title} · No contingency plan was activated, reserved, or saved (${effectsReason})`,
+      title: t("chaos.1"),
+      message: t("chaos.tpl.noPlan", { title: option.title, reason: effectsReason }),
       duration: 9000,
     });
     setCurrentPage(option.targetPage as any);
@@ -90,14 +92,14 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               <AlertTriangle className="w-4 h-4" />
             </span>
             <h3 className="font-display font-bold text-white text-base">
-              Chaos Rehearsal Playback
+              {t("chaos.2")}
             </h3>
             <DataKindBadge kind="simulated" size="sm" />
           </div>
           <p className="text-xs text-slate-300 mt-0.5">
             {effectsAvailable
-              ? "Test a four-phase risk scenario: disruption → propagation → cash impact → contingency"
-              : `Review a saved scenario (${source}). Figures come from a catalogue and are not recalculated by the engine · Change price, costs, deposits, or payment terms below to run a new calculation.`}
+              ? t("chaos.3")
+              : t("chaos.tpl.review", { source })}
           </p>
         </div>
 
@@ -109,7 +111,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
             className="px-4 py-2 bg-brand hover:bg-brand-dark text-white rounded-btn text-xs font-bold flex items-center gap-1.5 shadow-glow-primary transition-all cursor-pointer"
           >
             <Play className="w-3.5 h-3.5" />
-            <span>{isPlaying ? "Simulating..." : "Play scenario"}</span>
+            <span>{isPlaying ? t("chaos.4") : t("chaos.5")}</span>
           </button>
 
           <button
@@ -119,7 +121,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               setCurrentPhase(1);
             }}
             className="p-2 text-slate-400 hover:text-white rounded-lg hover:bg-navy-surface transition-colors"
-            title="Restart"
+            title={t("chaos.6")}
           >
             <RotateCcw className="w-4 h-4" />
           </button>
@@ -151,10 +153,10 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
       {/* 4-Phase Step Progress Indicator (Part E4 S6) */}
       <div className="grid grid-cols-4 gap-2 text-center text-xs">
         {[
-          { num: 1, label: "1. Disruption", desc: "Shockwave trigger point" },
-          { num: 2, label: "2. Affected areas", desc: "Propagation across connections" },
-          { num: 3, label: "3. Cash impact", desc: "Projected cash decline" },
-          { num: 4, label: "4. Contingency", desc: "Saved proposals" },
+          { num: 1, label: t("chaos.7"), desc: t("chaos.8") },
+          { num: 2, label: t("chaos.9"), desc: t("chaos.10") },
+          { num: 3, label: t("chaos.11"), desc: t("chaos.12") },
+          { num: 4, label: t("chaos.13"), desc: t("chaos.14") },
         ].map((ph) => (
           <button
             key={ph.num}
@@ -190,7 +192,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
             </div>
             <div>
               <span className="text-[10px] font-bold text-danger uppercase tracking-widest block mb-1">
-                Phase 1: Disruption
+                {t("chaos.15")}
               </span>
               <h4 className="text-base font-display font-bold text-white">
                 {currentScenario.title}
@@ -206,7 +208,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
         {currentPhase === 2 && (
           <div className="space-y-4 animate-fade-in my-auto">
             <span className="text-[10px] font-bold text-attention uppercase tracking-widest block text-center">
-              Phase 2: Impact propagates through the network
+              {t("chaos.16")}
             </span>
             <div className="flex flex-wrap items-center justify-center gap-2 max-w-lg mx-auto">
               {currentScenario.propagationPath.map((node, idx) => (
@@ -222,7 +224,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               ))}
             </div>
             <p className="text-xs text-slate-300 text-center max-w-md mx-auto">
-              Impact path recorded in this scenario · The engine has not recalculated actual allocation effects.
+              {t("chaos.17")}
             </p>
           </div>
         )}
@@ -231,12 +233,12 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
         {currentPhase === 3 && (
           <div className="space-y-4 animate-fade-in my-auto text-center">
             <span className="text-[10px] font-bold text-danger uppercase tracking-widest block">
-              Phase 3: Cash drops sharply
+              {t("chaos.18")}
             </span>
             <div className="flex justify-center items-center gap-6">
               <div className="p-3 bg-red-950/40 rounded-xl border border-danger/40">
                 <span className="text-[10px] text-slate-400 block">
-                  {effectsAvailable ? "Additional working-capital gap" : "Value recorded in scenario (not recalculated)"}
+                  {effectsAvailable ? t("chaos.x.1") : t("chaos.19")}
                 </span>
                 <span className="text-2xl font-extrabold font-mono text-danger tabular-nums">
                   +฿{currentScenario.cashImpactAmount.toLocaleString("en-US")}
@@ -244,16 +246,16 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               </div>
               <div className="p-3 bg-red-950/40 rounded-xl border border-danger/40">
                 <span className="text-[10px] text-slate-400 block">
-                  {currentScenario.deficitDays.length ? "Recorded days with negative cash" : "Days with negative cash"}
+                  {currentScenario.deficitDays.length ? t("chaos.20") : t("chaos.21")}
                 </span>
                 <span className="text-xl font-bold font-mono text-white">
-                  {currentScenario.deficitDays.length ? `Day ${currentScenario.deficitDays.join(", ")}` : "Not recorded"}
+                  {currentScenario.deficitDays.length ? t("chaos.r.day", { days: currentScenario.deficitDays.join(", ") }) : t("chaos.22")}
                 </span>
               </div>
             </div>
             <p className="text-xs text-slate-300 max-w-md mx-auto leading-relaxed">
-              {currentScenario.description} · No contract or evidence supports penalties, delays, or effects on other shops.
-              The system does not estimate them.
+              {t("chaos.m1", { description: currentScenario.description })}
+              {t("chaos.23")}
             </p>
           </div>
         )}
@@ -262,7 +264,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
         {currentPhase === 4 && (
           <div className="space-y-3 animate-fade-in">
             <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-widest block">
-              Phase 4: Saved contingency options (proposals for review, not active arrangements)
+              {t("chaos.w1")}
             </span>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {currentScenario.contingencyOptions.map((opt) => (
@@ -294,7 +296,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
 
         {/* Bottom Phase Controller */}
         <div className="flex items-center justify-between border-t border-navy-border pt-3 mt-4 text-[11px] text-slate-400">
-          <span>Severity: <strong>{currentScenario.severity.toUpperCase()}</strong></span>
+          <span>{t("chaos.24")} <strong>{currentScenario.severity.toUpperCase()}</strong></span>
           <div className="flex items-center gap-2">
             <button
               type="button"
@@ -302,7 +304,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               disabled={currentPhase === 1}
               className="hover:text-white disabled:opacity-30"
             >
-              Back
+              {t("chaos.w2")}
             </button>
             <span className="font-mono text-white">{currentPhase} / 4</span>
             <button
@@ -311,7 +313,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
               disabled={currentPhase === 4}
               className="hover:text-white disabled:opacity-30"
             >
-              Next
+              {t("chaos.w3")}
             </button>
           </div>
         </div>

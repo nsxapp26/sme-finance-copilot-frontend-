@@ -58,7 +58,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
 
   if (["error", "insufficient_data", "unavailable"].includes(effectiveMode) && databaseUnavailable(missingItems, errorMessage)) {
     return <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-slate-50 rounded-card border border-borderLine m-4">
-      <ShieldAlert className="w-10 h-10 text-ink-muted mb-4" />
+      <div className="state-icon w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4"><ShieldAlert className="w-7 h-7" /></div>
       <h3 className="text-base font-display font-bold text-ink mb-2">{t("stateR.dbTitle")}</h3>
       <p className="text-xs text-ink-muted max-w-lg leading-relaxed">{t("stateR.dbBody")}</p>
       <p className="text-xs text-ink-muted max-w-lg mt-3">{t("stateR.dbAdmin")}</p>
@@ -131,7 +131,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
   if (effectiveMode === "insufficient_data") {
     return (
       <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-amber-50/40 rounded-card border border-amber-200/80 m-4">
-        <div className="w-14 h-14 rounded-2xl bg-amber-100 text-attention flex items-center justify-center mb-4">
+        <div className="state-icon w-14 h-14 rounded-2xl bg-amber-100 text-attention flex items-center justify-center mb-4">
           <FileQuestion className="w-7 h-7" />
         </div>
         <h3 className="text-base font-display font-bold text-amber-900 mb-2">
@@ -179,7 +179,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
   if (effectiveMode === "unavailable") {
     return (
       <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-slate-50 rounded-card border border-borderLine m-4">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
+        <div className="state-icon w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
           <ShieldAlert className="w-7 h-7" />
         </div>
         <h3 className="text-base font-display font-bold text-ink mb-2">
@@ -216,7 +216,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
   if (effectiveMode === "error") {
     return (
       <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-rose-50/50 rounded-card border border-rose-200 m-4">
-        <div className="w-14 h-14 rounded-2xl bg-rose-100 text-danger flex items-center justify-center mb-4">
+        <div className="state-icon w-14 h-14 rounded-2xl bg-rose-100 text-danger flex items-center justify-center mb-4">
           <AlertTriangle className="w-7 h-7" />
         </div>
         <h3 className="text-base font-display font-bold text-rose-900 mb-1">
@@ -240,7 +240,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
   if (effectiveMode === "not_found") {
     return (
       <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-white rounded-card border border-borderLine m-4">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
+        <div className="state-icon w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
           <SearchX className="w-7 h-7" />
         </div>
         <h3 className="text-base font-display font-bold text-ink mb-1">
@@ -264,7 +264,7 @@ export const StateRenderer: React.FC<StateRendererProps> = ({
   if (effectiveMode === "no_permission") {
     return (
       <div className="min-h-[460px] flex flex-col items-center justify-center p-8 text-center bg-white rounded-card border border-borderLine m-4">
-        <div className="w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
+        <div className="state-icon w-14 h-14 rounded-2xl bg-slate-100 text-ink-muted flex items-center justify-center mb-4">
           <Lock className="w-7 h-7" />
         </div>
         <h3 className="text-base font-display font-bold text-ink mb-1">

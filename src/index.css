@@ -263,18 +263,18 @@ body {
 
 /* ===== Playful 3D ===== */
 /* การ์ดเอียงตามเมาส์ (ค่า --rx/--ry/--mx/--my ตั้งจาก useTilt ใน App.tsx) */
-[data-tilt] {
+[data-tilt], [data-tilt-grid] > * {
   position: relative;
   transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
   transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.3s ease;
   will-change: transform;
 }
-[data-tilt].is-tilting {
+[data-tilt].is-tilting, [data-tilt-grid] > .is-tilting {
   transition: transform 0.08s linear, box-shadow 0.3s ease;
   box-shadow: 0 18px 40px -18px rgba(108, 76, 241, 0.55);
 }
 /* แสงสะท้อนวิ่งตามเมาส์ */
-[data-tilt]::after {
+[data-tilt]::after, [data-tilt-grid] > *::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -285,7 +285,7 @@ body {
   background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.38), transparent 60%);
   mix-blend-mode: soft-light;
 }
-[data-tilt].is-tilting::after { opacity: 1; }
+[data-tilt].is-tilting::after, [data-tilt-grid] > .is-tilting::after { opacity: 1; }
 
 /* ปุ่มเด้งแบบสปริง */
 @media (hover: hover) {
@@ -371,6 +371,74 @@ body {
   50% { transform: translateY(-8px); }
 }
 
+/* หัวหน้าเพจทุกหน้า: การ์ดมีแสงออโรร่าเบา ๆ + ไอคอนลอย + หัวข้อค่อย ๆ ขึ้น */
+.page-header {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  padding: 1rem 1.25rem;
+  border-radius: 20px;
+  border: 1px solid rgba(108, 76, 241, 0.18);
+  background: rgba(255, 255, 255, 0.75);
+  box-shadow: 0 10px 30px -20px rgba(108, 76, 241, 0.45);
+}
+.page-header::before {
+  content: "";
+  position: absolute;
+  inset: -40%;
+  z-index: -1;
+  background:
+    radial-gradient(35% 45% at 15% 30%, rgba(108, 76, 241, 0.22), transparent 70%),
+    radial-gradient(30% 40% at 85% 20%, rgba(22, 193, 176, 0.20), transparent 70%),
+    radial-gradient(30% 40% at 60% 90%, rgba(245, 154, 35, 0.16), transparent 70%);
+  animation: headerAurora 16s ease-in-out infinite alternate;
+}
+@keyframes headerAurora {
+  from { transform: translate3d(-4%, 0, 0) rotate(0deg); }
+  to { transform: translate3d(4%, 3%, 0) rotate(8deg); }
+}
+.page-header h1 { animation: rise 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+.page-header h1 + * , .page-header p { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.08s backwards; }
+.page-header .w-8.h-8.rounded-xl {
+  box-shadow: 0 0 0 4px rgba(108, 76, 241, 0.12), 0 8px 20px -6px rgba(108, 76, 241, 0.7);
+  animation: iconBob 3.2s ease-in-out infinite;
+}
+@keyframes iconBob {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-3px) rotate(-6deg); }
+}
+
+/* ส่วนต่าง ๆ ของหน้าทยอยขึ้นตอนเปิดหน้า (ทุกหน้าอัตโนมัติ) */
+.animate-page-in .max-w-7xl > * { animation: rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.animate-page-in .max-w-7xl > *:nth-child(2) { animation-delay: 60ms; }
+.animate-page-in .max-w-7xl > *:nth-child(3) { animation-delay: 120ms; }
+.animate-page-in .max-w-7xl > *:nth-child(4) { animation-delay: 180ms; }
+.animate-page-in .max-w-7xl > *:nth-child(5) { animation-delay: 240ms; }
+.animate-page-in .max-w-7xl > *:nth-child(n+6) { animation-delay: 300ms; }
+
+/* ไอคอนในกล่องสถานะ: ลอยขึ้นลง + วงแสงกระเพื่อม */
+.state-icon {
+  position: relative;
+  animation: stateBob 3s ease-in-out infinite;
+}
+.state-icon::after {
+  content: "";
+  position: absolute;
+  inset: -6px;
+  border-radius: 1.25rem;
+  border: 2px solid currentColor;
+  opacity: 0;
+  animation: stateRing 2.4s ease-out infinite;
+}
+@keyframes stateBob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-5px); }
+}
+@keyframes stateRing {
+  0% { transform: scale(0.85); opacity: 0.45; }
+  100% { transform: scale(1.35); opacity: 0; }
+}
+
 /* ปุ่ม "ลดการเคลื่อนไหว" ในแอป (เดิมใส่ class ไว้แต่ไม่มี CSS รองรับ) */
 .reduce-motion *, .reduce-motion ::before, .reduce-motion ::after {
   animation-duration: 0.01ms !important;
@@ -380,12 +448,12 @@ body {
   scroll-behavior: auto !important;
 }
 
-.reduce-motion [data-tilt] { transform: none !important; }
+.reduce-motion [data-tilt], .reduce-motion [data-tilt-grid] > * { transform: none !important; }
 .reduce-motion .hero-particle { display: none; }
 
 /* Reduced motion overrides (Rule #10) */
 @media (prefers-reduced-motion: reduce) {
-  [data-tilt] { transform: none !important; }
+  [data-tilt], [data-tilt-grid] > * { transform: none !important; }
   .hero-particle { display: none; }
   *, ::before, ::after {
     animation-duration: 0.01ms !important;

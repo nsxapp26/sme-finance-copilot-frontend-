@@ -86,7 +86,7 @@ export const OverviewPage: React.FC = () => {
         <HeroAssembly />
 
         {/* Header Bar with timestamps and AI explain trigger */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h2 className="text-xl font-display font-bold text-ink">

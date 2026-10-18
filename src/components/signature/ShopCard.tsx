@@ -11,6 +11,7 @@ import {
   RefreshCw,
   MapPin,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 interface ShopCardProps {
   shop: Shop;
@@ -35,6 +36,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
   onSwapShop,
   className = "",
 }) => {
+  const t = useT();
   const isShortage = shop.fundingGap > 0;
   const usedPercent = Math.min(100, Math.round((shop.capacityUsed / shop.capacityTotal) * 100));
   const isDark = variant === "dark";
@@ -98,7 +100,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
               }`}
             >
               <CheckCircle2 className="w-3 h-3 text-emerald-500" />
-              Ready
+              {t("shopcard.w1")}
             </span>
           )}
           {shop.status === "review" && (
@@ -110,7 +112,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
               }`}
             >
               <AlertTriangle className="w-3 h-3 text-amber-500" />
-              Review
+              {t("shopcard.w2")}
             </span>
           )}
           {shop.status === "blocked" && (
@@ -122,7 +124,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
               }`}
             >
               <XCircle className="w-3 h-3 text-danger" />
-              Issue
+              {t("shopcard.w3")}
             </span>
           )}
         </div>
@@ -137,7 +139,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
         }`}
       >
         <div className="flex items-center justify-between text-xs mb-1.5">
-          <span className={isDark ? "text-slate-400" : "text-ink-muted"}>Capacity used</span>
+          <span className={isDark ? "text-slate-400" : "text-ink-muted"}>{t("shopcard.1")}</span>
           <span className={`font-mono font-medium ${isDark ? "text-slate-200" : "text-ink"}`}>
             {shop.capacityUsed} / {shop.capacityTotal} {shop.unit}
           </span>
@@ -156,7 +158,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
                 : "bg-resource-light text-resource-dark border border-resource/20"
             }`}
           >
-            Available {shop.capacityAvailable} {shop.unit === "กล่อง/วัน" ? "boxes/day" : shop.unit}
+            {t("shopcard.r.avail", { n: shop.capacityAvailable, unit: shop.unit === "กล่อง/วัน" ? t("shopcard.r.unit") : shop.unit })}
           </span>
           <span className={`flex items-center gap-0.5 text-[11px] ${isDark ? "text-slate-400" : "text-ink-muted"}`}>
             <MapPin className="w-3 h-3" />
@@ -172,7 +174,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
         }`}
       >
         <div className="flex flex-col">
-          <span className={`text-[11px] ${isDark ? "text-slate-400" : "text-ink-muted"}`}>Working capital required</span>
+          <span className={`text-[11px] ${isDark ? "text-slate-400" : "text-ink-muted"}`}>{t("shopcard.2")}</span>
           <div className="flex items-center gap-1 mt-0.5">
             <Coins className={`w-3.5 h-3.5 ${isDark ? "text-slate-400" : "text-ink-muted"}`} />
             <span className={`text-xs font-semibold font-mono tabular-nums ${isDark ? "text-white" : "text-ink"}`}>
@@ -183,14 +185,14 @@ export const ShopCard: React.FC<ShopCardProps> = ({
 
         {isShortage ? (
           <div className="flex flex-col items-end">
-            <span className="text-[11px] text-danger font-medium">Funding gap</span>
+            <span className="text-[11px] text-danger font-medium">{t("shopcard.3")}</span>
             <span className="text-xs font-bold text-danger bg-danger-light px-2 py-0.5 rounded-chip border border-danger/20 font-mono tabular-nums mt-0.5 shadow-2xs">
-              Shortfall ฿{shop.fundingGap.toLocaleString("en-US")}
+              {t("shopcard.m1", { fundingGap: shop.fundingGap.toLocaleString("en-US") })}
             </span>
           </div>
         ) : (
           <div className="flex flex-col items-end">
-            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">Liquidity</span>
+            <span className="text-[11px] text-emerald-600 dark:text-emerald-400 font-medium">{t("shopcard.4")}</span>
             <span
               className={`text-xs font-medium px-2 py-0.5 rounded-chip border mt-0.5 ${
                 isDark
@@ -198,7 +200,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
                   : "bg-emerald-50 text-emerald-700 border-emerald-200"
               }`}
             >
-              Covered
+              {t("shopcard.w4")}
             </span>
           </div>
         )}
@@ -219,7 +221,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
                 e.stopPropagation();
                 onSwapShop();
               }}
-              title="Replace this shop with a backup"
+              title={t("shopcard.5")}
               className={`px-2 py-1 rounded-lg transition-colors text-xs flex items-center gap-1 font-medium ${
                 isDark
                   ? "text-slate-300 hover:text-white hover:bg-slate-700/60"
@@ -227,7 +229,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
               }`}
             >
               <RefreshCw className="w-3 h-3" />
-              <span>Replace</span>
+              <span>{t("shopcard.6")}</span>
             </button>
           )}
           {onViewFinance && (
@@ -243,7 +245,7 @@ export const ShopCard: React.FC<ShopCardProps> = ({
                   : "text-brand hover:bg-brand/10"
               }`}
             >
-              <span>View shop finances</span>
+              <span>{t("shopcard.7")}</span>
               <ChevronRight className="w-3.5 h-3.5" />
             </button>
           )}

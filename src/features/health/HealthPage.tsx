@@ -16,8 +16,10 @@ import {
   Sparkles,
   ArrowRight,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const HealthPage: React.FC = () => {
+  const t = useT();
   const { setAIPanelOpen, setCurrentPage } = useAppStore();
   const { stale } = useAnalysisContext();
   const [activeCategory, setActiveCategory] = useState<string>("all");
@@ -50,8 +52,8 @@ export const HealthPage: React.FC = () => {
     return (
       <StateRenderer
         currentMode={mode === "error" ? "error" : mode === "unavailable" ? "unavailable" : "insufficient_data"}
-        errorMessage={error || "Could not load financial health metrics from the backend"}
-        unavailableReason="No metrics are available for this data set."
+        errorMessage={error || t("health.1")}
+        unavailableReason={t("health.x.1")}
         missingItems={indicatorsEnvelope?.missing || []}
         onRetry={loadData}
         onAddData={() => setCurrentPage("import")}
@@ -65,19 +67,19 @@ export const HealthPage: React.FC = () => {
     <StateRenderer currentMode={stale ? "stale" : undefined} onRetry={loadData} onReanalyze={() => setCurrentPage("import")}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold">
                 <HeartPulse className="w-4 h-4" />
               </div>
               <h1 className="text-xl font-display font-bold text-ink">
-                Five Dimensions of Financial Health
+                {t("health.2")}
               </h1>
               <DataKindBadge kind={indicatorsEnvelope.kind} size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Assess liquidity, profitability, debt burden, operating efficiency, and growth.
+              {t("health.3")}
             </p>
           </div>
 
@@ -88,7 +90,7 @@ export const HealthPage: React.FC = () => {
               className="px-3.5 py-1.5 bg-brand/10 hover:bg-brand/20 border border-brand/30 text-brand text-xs font-bold rounded-btn flex items-center gap-1.5 transition-colors"
             >
               <Sparkles className="w-3.5 h-3.5" />
-              <span>Ask AI to explain these metrics</span>
+              <span>{t("health.4")}</span>
             </button>
           </div>
         </div>
@@ -96,11 +98,11 @@ export const HealthPage: React.FC = () => {
         {/* Category Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
           {[
-            { id: "all", label: "All metrics" },
-            { id: "liquidity", label: "💧 Liquidity" },
-            { id: "profitability", label: "📈 Profitability" },
-            { id: "debt", label: "⚖️ Debt" },
-            { id: "efficiency", label: "⚙️ Efficiency" },
+            { id: "all", label: t("health.5") },
+            { id: "liquidity", label: t("health.6") },
+            { id: "profitability", label: t("health.7") },
+            { id: "debt", label: t("health.8") },
+            { id: "efficiency", label: t("health.9") },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -118,7 +120,7 @@ export const HealthPage: React.FC = () => {
         </div>
 
         {/* Indicators Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div data-tilt-grid className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {filtered.map((item) => {
             const isInsufficient = item.status === "insufficient" || item.value === null;
 
@@ -155,12 +157,12 @@ export const HealthPage: React.FC = () => {
                       }`}
                     >
                       {item.status === "good"
-                        ? "Healthy"
+                        ? t("health.10")
                         : item.status === "warning"
-                        ? "Monitor"
+                        ? t("health.11")
                         : item.status === "danger"
-                        ? "Under pressure"
-                        : "Insufficient data"}
+                        ? t("health.12")
+                        : t("health.13")}
                     </span>
                   </div>
 
@@ -169,10 +171,10 @@ export const HealthPage: React.FC = () => {
                     <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5 my-2">
                       <div className="flex items-center gap-1.5 text-xs font-bold text-amber-900">
                         <FileQuestion className="w-4 h-4 text-attention shrink-0" />
-                        <span>{item.missingFields?.length ? "Cannot calculate. Missing:" : "Cannot calculate"}</span>
+                        <span>{item.missingFields?.length ? t("health.14") : t("health.15")}</span>
                       </div>
                       <ul className="text-[11px] text-amber-800 list-disc pl-4 space-y-0.5">
-                        {(item.missingFields?.length ? item.missingFields : [item.interpretation || "The backend did not specify the missing items."]).map((mf, idx) => (
+                        {(item.missingFields?.length ? item.missingFields : [item.interpretation || t("health.16")]).map((mf, idx) => (
                           <li key={idx}>{mf}</li>
                         ))}
                       </ul>
@@ -181,19 +183,19 @@ export const HealthPage: React.FC = () => {
                         onClick={() => setCurrentPage("import")}
                         className="text-[10px] font-bold text-brand hover:underline block pt-1"
                       >
-                        + Add the missing data on the Business Data page
+                        {t("health.17")}
                       </button>
                     </div>
                   ) : (
                     <div className="my-2">
                       <div className="flex items-baseline gap-1.5">
                         <span className="text-2xl font-extrabold font-mono text-ink tabular-nums">
-                          {item.value == null ? "No data" : item.value.toLocaleString("en-US", { maximumFractionDigits: 4 })}
+                          {item.value == null ? t("health.18") : item.value.toLocaleString("en-US", { maximumFractionDigits: 4 })}
                         </span>
                         <span className="text-xs font-semibold text-ink-muted">{item.unit}</span>
                       </div>
                       <span className="text-[10px] text-slate-400 font-mono">
-                        Benchmark: {item.benchmark}
+                        {t("health.r.bench", { v: item.benchmark })}
                       </span>
                     </div>
                   )}
@@ -214,7 +216,7 @@ export const HealthPage: React.FC = () => {
                     className="text-brand hover:underline font-medium flex items-center gap-1"
                   >
                     <Info className="w-3 h-3" />
-                    <span>{inspectFormulaId === item.id ? "Hide formula" : "View formula"}</span>
+                    <span>{inspectFormulaId === item.id ? t("health.19") : t("health.20")}</span>
                   </button>
 
                   <DataKindBadge kind={indicatorsEnvelope.kind} size="sm" />
@@ -223,7 +225,7 @@ export const HealthPage: React.FC = () => {
                 {/* Formula Popover Dropdown */}
                 {inspectFormulaId === item.id && (
                   <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200 text-[10px] text-ink-muted font-mono animate-fade-in">
-                    <strong>Formula:</strong> {item.formula}
+                    <strong>{t("health.21")}</strong> {item.formula}
                   </div>
                 )}
               </div>

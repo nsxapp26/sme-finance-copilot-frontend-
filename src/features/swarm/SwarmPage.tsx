@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { useAppStore } from "@/store/useAppStore";
 import { apiClient, OrderContext } from "@/api/client";
+import { HeroBackdrop } from "@/components/fx/HeroBackdrop";
 import { DataKind, OrderConstraints, SwarmOrder, SwarmProposal, Shop, StuckReasonType } from "@/api/contracts/types";
 import { ShopCard } from "@/components/signature/ShopCard";
 import { DataKindBadge } from "@/components/signature/DataKindBadge";
@@ -27,8 +28,10 @@ import {
   Layers,
   Zap,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const SwarmPage: React.FC = () => {
+  const t = useT();
   const {
     setCurrentPage,
     setSelectedShopId,
@@ -58,18 +61,18 @@ export const SwarmPage: React.FC = () => {
   const unknown = (name: string) => contextMissing.includes(name) || proposalMissing.includes(name);
   const requiredTypes = constraints?.required_business_types;
   const typeRequirementText = unknown("required_business_types") || requiredTypes == null
-    ? "Required business types are not recorded"
+    ? t("swarm.1")
     : requiredTypes.length === 0
-    ? "No business type restriction (explicitly recorded)"
-    : `Required types: ${requiredTypes.join(", ")}`;
+    ? t("swarm.2")
+    : t("swarm.tpl.types", { list: requiredTypes.join(", ") });
   const distanceText = unknown("max_distance_km") || constraints?.max_distance_km === undefined
-    ? "Accepted radius is not recorded"
+    ? t("swarm.3")
     : constraints?.max_distance_km === null
-    ? "No distance restriction (explicitly recorded)"
-    : `Radius up to ${constraints?.max_distance_km} km`;
+    ? t("swarm.4")
+    : t("swarm.tpl.radius", { km: constraints?.max_distance_km ?? "" });
   const collectionText = unknown("collection_schedule") || constraints?.collection_schedule == null
-    ? "Collection schedule is not recorded"
-    : `${constraints?.collection_schedule.length} collection installments`;
+    ? t("swarm.5")
+    : t("swarm.tpl.installments", { n: constraints?.collection_schedule.length ?? 0 });
   const amount = (value: number) => value.toLocaleString("en-US", { maximumFractionDigits: 2 });
   const applyProposal = (result: Awaited<ReturnType<typeof apiClient.assembleSwarm>>, pool: Shop[]) => {
     setProposal(result.data); setProposalKind(result.kind); setEligibility(result.audit.eligibility);
@@ -80,7 +83,7 @@ export const SwarmPage: React.FC = () => {
       return { ...shop, workingCapitalNeeded: allocation?.workingCapitalNeeded ?? 0,
         fundingGap: allocation?.fundingGap ?? 0,
         status: assessment?.eligible === false ? "blocked" : result.missing?.length && allocation?.status === "ready" ? "review" : allocation?.status || "review",
-        statusNote: assessment?.reasons.join("; ") || (allocation ? "Recalculated proposal; quota not reserved" : "No share of this order assigned") };
+        statusNote: assessment?.reasons.join("; ") || (allocation ? t("swarm.6") : t("swarm.7")) };
     }));
   };
 
@@ -138,17 +141,17 @@ export const SwarmPage: React.FC = () => {
       addToast({
         type: gaps.length ? "warning" : "success",
         title: message,
-        message: `Allocated: ${result.data.totalCapacityAssigned} per day · Capacity shortfall: ${result.data.deficitBoxesPerDay} · Funding gap: ฿${amount(result.data.totalFundingGap)}`
+        message: t("swarm.tpl.result", { a: result.data.totalCapacityAssigned, s: result.data.deficitBoxesPerDay, g: amount(result.data.totalFundingGap) })
           + " · Preview proposal (persist=false); no quota or resources are reserved and no team is confirmed."
-          + (gaps.length ? ` · Missing project data: ${gaps.join(", ")}` : ""),
+          + (gaps.length ? ` · ${t("swarm.tpl.missing", { list: gaps.join(", ") })}` : ""),
         duration: gaps.length ? 11000 : undefined,
       });
-    } catch (err) { if (sequence.current === id) addToast({ type: "error", title: "Calculation failed", message: (err as Error).message }); }
+    } catch (err) { if (sequence.current === id) addToast({ type: "error", title: t("swarm.8"), message: (err as Error).message }); }
     finally { busy.current = false; setIsAssembling(false); setScanPulse(false); }
   };
   const handleTriggerSwarmAssembly = () => {
     if (context) void assemble(context, "Team proposal calculated");
-    else addToast({ type: "error", title: "Demo mode", message: "Set VITE_USE_MOCK=false and connect the backend before calculating a live team proposal." });
+    else addToast({ type: "error", title: t("swarm.9"), message: t("swarm.10") });
   };
   const assignedIds = new Set(proposal?.shops.map((shop) => shop.shopId) || []);
   const replacement = catalogue.find((shop) => !assignedIds.has(shop.id) && shop.id !== swappingShopId && eligibility[shop.id]?.eligible && shop.capacityAvailable > 0);
@@ -158,7 +161,7 @@ export const SwarmPage: React.FC = () => {
     // its real resource dependencies and capacity constraints.
     const ids = new Set([...assignedIds].filter((id) => id !== oldShopId));
     ids.add(replacement.id);
-    void assemble({ ...context, shops: context.shops.filter((shop) => ids.has(shop.shop_id)) }, "Team recalculated after replacing a shop");
+    void assemble({ ...context, shops: context.shops.filter((shop) => ids.has(shop.shop_id)) }, t("swarm.r.recalc"));
   };
   if (!loading && error) return <StateRenderer currentMode="error" errorMessage={error} onRetry={loadData}>{null}</StateRenderer>;
 
@@ -196,9 +199,8 @@ export const SwarmPage: React.FC = () => {
     <StateRenderer onRetry={loadData}>
       {/* Studio Cockpit Container with Deep Navy Theme & Cosmic Grid */}
       <div className="min-h-[calc(100vh-5rem)] bg-[#070D24] text-slate-100 rounded-3xl p-4 lg:p-7 border border-[#1b2b60] shadow-2xl relative overflow-hidden bg-cosmic-grid animate-fade-in">
-        {/* Soft Ambient Nebula Lighting in Background */}
-        <div className="absolute top-0 left-1/4 w-[500px] h-[500px] rounded-full bg-brand/15 blur-[120px] pointer-events-none" />
-        <div className="absolute bottom-0 right-1/4 w-[500px] h-[500px] rounded-full bg-resource/15 blur-[120px] pointer-events-none" />
+        {/* พื้นหลังออโรร่า + พื้นตาราง 3 มิติ แบบเดียวกับหน้าแรก (ตกแต่งอย่างเดียว) */}
+        <HeroBackdrop animate={!isReducedMotion} />
 
         {/* Top Title & S2 Assembly Action Bar */}
         <div className="relative z-10 flex flex-wrap items-center justify-between gap-4 border-b border-slate-800/90 pb-5">
@@ -208,12 +210,12 @@ export const SwarmPage: React.FC = () => {
                 <Network className="w-5 h-5" />
               </div>
               <h1 className="text-xl md:text-2xl font-display font-bold text-white tracking-tight">
-                SME SWARM Team Assembly for Large Orders
+                {t("swarm.11")}
               </h1>
               <DataKindBadge kind={proposalKind} size="md" />
             </div>
             <p className="text-xs text-slate-400">
-              Large-order allocation workspace · Reviewing {shops.length} applicants · {typeRequirementText} · {distanceText}
+              {t("swarm.m1", { shops: shops.length, typeRequirementText, distanceText })}
             </p>
           </div>
 
@@ -231,7 +233,7 @@ export const SwarmPage: React.FC = () => {
                 }`}
               >
                 <Radar className="w-3.5 h-3.5" />
-                <span>Orbit Radar</span>
+                <span>{t("swarm.12")}</span>
               </button>
               <button
                 type="button"
@@ -243,7 +245,7 @@ export const SwarmPage: React.FC = () => {
                 }`}
               >
                 <Layers className="w-3.5 h-3.5" />
-                <span>{shops.length} applicant cards</span>
+                <span>{t("swarm.m2", { shops: shops.length })}</span>
               </button>
             </div>
 
@@ -255,7 +257,7 @@ export const SwarmPage: React.FC = () => {
               className="px-4 py-2 bg-gradient-to-r from-brand via-purple-500 to-teal-400 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               <Sparkles className={`w-4 h-4 ${scanPulse ? "animate-spin" : ""}`} />
-              <span>Recommend a team (Radar Scan)</span>
+              <span>{t("swarm.13")}</span>
             </button>
 
             {/* S6 Chaos Rehearsal Button */}
@@ -265,7 +267,7 @@ export const SwarmPage: React.FC = () => {
               className="px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
             >
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
-              <span>Run a Chaos rehearsal</span>
+              <span>{t("swarm.14")}</span>
             </button>
           </div>
         </div>
@@ -275,7 +277,7 @@ export const SwarmPage: React.FC = () => {
           <div className="flex items-center gap-2.5">
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4 text-attention" />
-              <span>Project bottlenecks (S3 Spotlight):</span>
+              <span>{t("swarm.15")}</span>
             </span>
 
             <div className="flex items-center gap-1 bg-[#152042] p-1 rounded-xl text-xs border border-slate-700/60">
@@ -288,7 +290,7 @@ export const SwarmPage: React.FC = () => {
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                All
+                {t("swarm.w1")}
               </button>
               <button
                 type="button"
@@ -299,7 +301,7 @@ export const SwarmPage: React.FC = () => {
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                <span>Capacity</span>
+                <span>{t("swarm.16")}</span>
                 {isDeficit && <span className="w-2 h-2 rounded-full bg-danger animate-ping" />}
               </button>
               <button
@@ -311,10 +313,10 @@ export const SwarmPage: React.FC = () => {
                     : "text-rose-400 hover:text-rose-300"
                 }`}
               >
-                <span>Working capital</span>
+                <span>{t("swarm.17")}</span>
                 {shortageCount > 0 && (
                   <span className="px-1.5 py-0.2 bg-white text-rose-600 rounded-full text-[10px] font-bold">
-                    {shortageCount} shops affected
+                    {t("swarm.m3", { shortageCount })}
                   </span>
                 )}
               </button>
@@ -327,17 +329,17 @@ export const SwarmPage: React.FC = () => {
                     : "text-slate-400 hover:text-slate-200"
                 }`}
               >
-                Delivery
+                {t("swarm.w2")}
               </button>
             </div>
           </div>
 
           <div className="text-xs text-slate-400 flex items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-            <span>Plan version: <strong className="text-white font-mono">{proposal.version}</strong></span>
+            <span>{t("swarm.18")} <strong className="text-white font-mono">{proposal.version}</strong></span>
             <span className="text-slate-600">|</span>
             <span className="text-slate-400 text-[11px]">
-              {proposalMissing.length ? `${proposalMissing.length} missing project requirements` : "All project requirements are recorded"}
+              {proposalMissing.length ? t("swarm.tpl.reqMissing", { n: proposalMissing.length }) : t("swarm.19")}
             </span>
           </div>
         </div>
@@ -351,13 +353,13 @@ export const SwarmPage: React.FC = () => {
               </div>
               <div>
                 <div className="text-xs font-bold text-white flex items-center gap-2">
-                  <span>Bottleneck detected: {shortageCount} shops have a funding gap (฿{amount(proposal.totalFundingGap)} total)</span>
+                  <span>{t("swarm.m4", { shortageCount, totalFundingGap: amount(proposal.totalFundingGap) })}</span>
                   <span className="text-[10px] bg-rose-500 text-white px-2 py-0.5 rounded-full font-mono">
-                    This order only
+                    {t("swarm.20")}
                   </span>
                 </div>
                 <p className="text-[11px] text-rose-300/90 mt-0.5">
-                  <strong>{shortageCount} shops need additional capital</strong> {proposal.stuckReasons.map((reason) => reason.message).join(" · ")} · <strong>Capacity shortfall: {proposal.deficitBoxesPerDay} per day</strong>
+                  <strong>{t("swarm.m5", { shortageCount })}</strong> {proposal.stuckReasons.map((reason) => reason.message).join(" · ")} · <strong>{t("swarm.m6", { deficitBoxesPerDay: proposal.deficitBoxesPerDay })}</strong>
                 </p>
               </div>
             </div>
@@ -368,7 +370,7 @@ export const SwarmPage: React.FC = () => {
               className="px-4 py-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg transition-all cursor-pointer"
             >
               <Zap className="w-3.5 h-3.5" />
-              <span>Address this: rank funders against the shortfall</span>
+              <span>{t("swarm.21")}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -381,7 +383,7 @@ export const SwarmPage: React.FC = () => {
             <div className="p-5 rounded-2xl bg-[#0E1838]/90 border border-slate-700/60 backdrop-blur-md shadow-xl space-y-3.5">
               <div className="flex items-center justify-between">
                 <span className="text-[11px] font-bold text-brand-glow uppercase tracking-wider">
-                  Source Order (B2B Demand)
+                  {t("swarm.w3")}
                 </span>
                 <span className="px-2 py-0.5 rounded-full bg-brand/20 border border-brand/40 text-[10px] text-brand-glow font-bold">
                   B2B
@@ -394,7 +396,7 @@ export const SwarmPage: React.FC = () => {
 
               <div className="space-y-2.5 text-xs border-t border-slate-800 pt-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Buyer:</span>
+                  <span className="text-slate-400">{t("swarm.22")}</span>
                   <span className="font-semibold text-white flex items-center gap-1 text-right">
                     <Building2 className="w-3.5 h-3.5 text-teal-400 shrink-0" />
                     <span>{order.buyerName}</span>
@@ -402,24 +404,24 @@ export const SwarmPage: React.FC = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Demand:</span>
+                  <span className="text-slate-400">{t("swarm.23")}</span>
                   <span className="font-bold text-teal-300 font-mono text-sm">
-                    {order.quantityPerDay} boxes/day
+                    {t("swarm.m7", { quantityPerDay: order.quantityPerDay })}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Duration:</span>
-                  <span className="font-medium text-white font-mono">{order.days} days ({amount(order.quantityPerDay * order.days)} boxes total)</span>
+                  <span className="text-slate-400">{t("swarm.24")}</span>
+                  <span className="font-medium text-white font-mono">{t("swarm.m8", { days: order.days, days2: amount(order.quantityPerDay * order.days) })}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Offer price:</span>
-                  <span className="font-bold text-white font-mono">฿{order.unitPrice} / box</span>
+                  <span className="text-slate-400">{t("swarm.25")}</span>
+                  <span className="font-bold text-white font-mono">{t("swarm.m9", { unitPrice: order.unitPrice })}</span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Total budget:</span>
+                  <span className="text-slate-400">{t("swarm.26")}</span>
                   <span className="font-extrabold text-teal-300 font-mono text-base">
                     ฿{order.budgetTotal.toLocaleString("en-US")}
                   </span>
@@ -450,17 +452,17 @@ export const SwarmPage: React.FC = () => {
                     🚚
                   </div>
                   <div>
-                    <span className="font-bold text-white">Shared refrigerated delivery vehicle</span>
-                    <div className="text-[11px] text-slate-400">{blockedResources.length ? `Unavailable: ${blockedResources.join(" · ")}` : "Vehicle reservation is not confirmed"}</div>
+                    <span className="font-bold text-white">{t("swarm.27")}</span>
+                    <div className="text-[11px] text-slate-400">{blockedResources.length ? t("swarm.r.unavail", { list: blockedResources.join(" · ") }) : t("swarm.r.vehicle")}</div>
                   </div>
                 </div>
                 <span className="text-teal-400 font-bold font-mono text-[11px] bg-teal-950/80 px-2 py-0.5 rounded-full border border-teal-800">
-                  {proposal.shops.length} shops assigned
+                  {t("swarm.m10", { shops: proposal.shops.length })}
                 </span>
               </div>
               <div className="text-[11px] text-slate-400 border-t border-slate-800 pt-2 flex items-center justify-between">
-                <span>Collection schedule: <strong>{collectionText}</strong></span>
-                <span>Buyer coordinates: <strong>{constraints?.buyer_coordinates ? "Recorded" : "Not recorded"}</strong></span>
+                <span>{t("swarm.28")} <strong>{collectionText}</strong></span>
+                <span>{t("swarm.29")} <strong>{constraints?.buyer_coordinates ? t("swarm.30") : t("swarm.31")}</strong></span>
               </div>
             </div>
           </div>
@@ -491,11 +493,11 @@ export const SwarmPage: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <Radio className="w-4 h-4 text-teal-400 animate-pulse" />
                     <span className="font-bold text-white">
-                      Orbit Radar Hub
+                      {t("swarm.32")}
                     </span>
                   </div>
                   <span className="text-slate-400 text-[11px] font-mono">
-                    Buyer coordinates and distance criteria are not available.
+                    {t("swarm.33")}
                   </span>
                 </div>
 
@@ -545,9 +547,9 @@ export const SwarmPage: React.FC = () => {
                       {/* Pulsing Beacon Ring */}
                       <div className="absolute -inset-3 rounded-full bg-gradient-to-r from-brand to-teal-400 opacity-40 blur-md group-hover:opacity-75 transition-opacity animate-pulse" />
                       <div className="w-20 h-20 rounded-full bg-[#101C3E] border-2 border-teal-400/80 flex flex-col items-center justify-center p-1.5 shadow-2xl relative z-10">
-                        <span className="text-[10px] text-teal-300 font-bold leading-none">ORDER</span>
+                        <span className="text-[10px] text-teal-300 font-bold leading-none">{t("swarm.34")}</span>
                         <span className="font-mono font-extrabold text-white text-sm leading-tight">{order.quantityPerDay}</span>
-                        <span className="text-[9px] text-slate-300 leading-none">boxes/day</span>
+                        <span className="text-[9px] text-slate-300 leading-none">{t("swarm.35")}</span>
                       </div>
                     </div>
                     <span className="mt-1.5 px-2 py-0.5 rounded-full bg-teal-950/80 border border-teal-600/80 text-[10px] text-teal-300 font-bold">
@@ -601,10 +603,10 @@ export const SwarmPage: React.FC = () => {
                               {shop.name}
                             </div>
                             <div className="flex items-center gap-1 text-[10px]">
-                              <span className="text-teal-400 font-mono font-bold">{proposal.shops.find((item) => item.shopId === shop.id)?.shareBoxesPerDay ?? 0} boxes</span>
+                              <span className="text-teal-400 font-mono font-bold">{t("swarm.r.boxes", { n: proposal.shops.find((item) => item.shopId === shop.id)?.shareBoxesPerDay ?? 0 })}</span>
                               {isStuck && (
                                 <span className="text-rose-400 font-bold font-mono">
-                                  Shortfall ฿{(shop.fundingGap / 1000).toFixed(1)}k
+                                  {t("swarm.m11", { fundingGap: (shop.fundingGap / 1000).toFixed(1) })}
                                 </span>
                               )}
                             </div>
@@ -618,13 +620,13 @@ export const SwarmPage: React.FC = () => {
                 {/* Bottom Quick Shop Carousel in Cockpit */}
                 <div className="relative z-20 pt-3 border-t border-slate-800">
                   <div className="text-[11px] text-slate-400 mb-2 flex items-center justify-between">
-                    <span>Click to view team shop details:</span>
+                    <span>{t("swarm.36")}</span>
                     <button
                       type="button"
                       onClick={() => setViewMode("roster")}
                       className="text-teal-300 hover:text-white flex items-center gap-0.5 text-xs font-semibold"
                     >
-                      <span>View all {shops.length} shops</span>
+                      <span>{t("swarm.m12", { shops: shops.length })}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </div>
@@ -652,9 +654,9 @@ export const SwarmPage: React.FC = () => {
                           <div className="font-bold text-xs truncate">{shop.name}</div>
                           <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                             {isStuck ? (
-                              <span className="text-rose-400 font-bold">Shortfall ฿{shop.fundingGap.toLocaleString("en-US")}</span>
+                              <span className="text-rose-400 font-bold">{t("swarm.m13", { fundingGap: shop.fundingGap.toLocaleString("en-US") })}</span>
                             ) : (
-                              <span>{proposal.shops.find((item) => item.shopId === shop.id)?.shareBoxesPerDay ?? 0} boxes/day</span>
+                              <span>{t("swarm.r.bpd", { n: proposal.shops.find((item) => item.shopId === shop.id)?.shareBoxesPerDay ?? 0 })}</span>
                             )}
                           </div>
                         </button>
@@ -669,7 +671,7 @@ export const SwarmPage: React.FC = () => {
                 <div className="flex items-center justify-between text-xs px-1">
                   <span className="font-bold text-white flex items-center gap-1.5">
                     <Users className="w-4 h-4 text-teal-400" />
-                    <span>{proposal.shops.length} shops assigned from {shops.length} applicants</span>
+                    <span>{t("swarm.m14", { shops: proposal.shops.length, shops2: shops.length })}</span>
                   </span>
                   <span className="text-slate-400 text-[11px]">
                     {distanceText}
@@ -714,15 +716,15 @@ export const SwarmPage: React.FC = () => {
           <div className="lg:col-span-3 space-y-4">
             <div className="p-5 rounded-2xl bg-[#0E1838]/90 border border-slate-700/60 backdrop-blur-md shadow-xl space-y-4">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
-                Team Totals (Swarm Tally)
+                {t("swarm.w4")}
               </span>
 
               {/* Capacity Progress Meter */}
               <div>
                 <div className="flex items-center justify-between text-xs mb-1.5">
-                  <span className="text-slate-400">Total capacity</span>
+                  <span className="text-slate-400">{t("swarm.37")}</span>
                   <span className="font-bold font-mono text-white">
-                    {proposal.totalCapacityAssigned} / {order.quantityPerDay} boxes/day
+                    {t("swarm.m15", { totalCapacityAssigned: proposal.totalCapacityAssigned, quantityPerDay: order.quantityPerDay })}
                   </span>
                 </div>
                 <div className="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
@@ -736,30 +738,30 @@ export const SwarmPage: React.FC = () => {
                 <div className="mt-1.5 flex items-center justify-between text-[11px]">
                   <span className="text-emerald-400 font-semibold flex items-center gap-1">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>{amount(proposal.totalCapacityAssigned)} boxes allocated</span>
+                    <span>{t("swarm.m16", { totalCapacityAssigned: amount(proposal.totalCapacityAssigned) })}</span>
                   </span>
-                  <span className="text-slate-400 font-mono">Short by {amount(proposal.deficitBoxesPerDay)} boxes/day</span>
+                  <span className="text-slate-400 font-mono">{t("swarm.m17", { deficitBoxesPerDay: amount(proposal.deficitBoxesPerDay) })}</span>
                 </div>
               </div>
 
               {/* Financial Settlement Breakdown */}
               <div className="space-y-2.5 border-t border-slate-800 pt-3 text-xs">
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Total revenue ({proposal.shops.length} shops):</span>
+                  <span className="text-slate-400">{t("swarm.m18", { shops: proposal.shops.length })}</span>
                   <span className="font-bold font-mono text-white">
                     ฿{proposal.totalRevenue.toLocaleString("en-US")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <span className="text-slate-400">Total cost ({proposal.shops.length} shops):</span>
+                  <span className="text-slate-400">{t("swarm.m19", { shops: proposal.shops.length })}</span>
                   <span className="font-medium font-mono text-slate-300">
                     ฿{proposal.totalCost.toLocaleString("en-US")}
                   </span>
                 </div>
 
                 <div className="flex items-center justify-between border-t border-dashed border-slate-800 pt-2.5">
-                  <span className="font-bold text-teal-300">Order profit before other expenses:</span>
+                  <span className="font-bold text-teal-300">{t("swarm.38")}</span>
                   <span className="font-extrabold font-mono text-teal-300 text-sm">
                     ฿{proposal.totalProfit.toLocaleString("en-US")}
                   </span>
@@ -769,13 +771,13 @@ export const SwarmPage: React.FC = () => {
               {/* Funding Gap Card */}
               <div className="p-3.5 bg-rose-950/60 rounded-xl border border-rose-500/40 space-y-2 shadow-lg">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-rose-300">Total funding gap:</span>
+                  <span className="text-xs font-bold text-rose-300">{t("swarm.39")}</span>
                   <span className="text-sm font-extrabold text-rose-400 font-mono tabular-nums">
                     ฿{proposal.totalFundingGap.toLocaleString("en-US")}
                   </span>
                 </div>
                 <p className="text-[11px] text-rose-300/80 leading-relaxed">
-                  {shortageCount} participating shops have a working-capital gap · This proposal covers this order only and excludes other business obligations.
+                  {t("swarm.m20", { shortageCount })}
                 </p>
                 <button
                   type="button"
@@ -783,21 +785,21 @@ export const SwarmPage: React.FC = () => {
                   className="w-full py-2 bg-gradient-to-r from-rose-500 to-amber-500 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-1.5 transition-all shadow-md cursor-pointer"
                 >
                   <Coins className="w-3.5 h-3.5" />
-                  <span>Match funding to the shortfall only</span>
+                  <span>{t("swarm.40")}</span>
                 </button>
               </div>
 
               {/* Team Readiness Status */}
               <div className="pt-2 border-t border-slate-800 space-y-2.5">
                 <div className="flex items-center justify-between text-xs">
-                  <span className="text-slate-400">Readiness:</span>
+                  <span className="text-slate-400">{t("swarm.41")}</span>
                   <span className="font-bold text-amber-300 bg-amber-950/70 px-2 py-0.5 rounded-full border border-amber-800/80">
                     {proposalMissing.length
-                      ? `Cannot confirm suitability (${proposalMissing.length} missing requirements)`
+                      ? t("swarm.tpl.cannotConfirm", { n: proposalMissing.length })
                       : proposal.status === "ready"
-                      ? "Meets the engine's numeric criteria"
+                      ? t("swarm.42")
                       : proposal.status}{" "}
-                    · {shortageCount} shops need additional funding
+                    {t("swarm.m21", { shortageCount })}
                   </span>
                 </div>
 
@@ -806,7 +808,7 @@ export const SwarmPage: React.FC = () => {
                   onClick={() => { const id = proposal.shops[0]?.shopId; if (id) { setSelectedShopId(id); setCurrentPage("shop-finance", { shopId: id }); } }}
                   className="w-full py-2.5 bg-brand hover:bg-brand-dark text-white rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 transition-all shadow-glow-primary cursor-pointer"
                 >
-                  <span>View saved shop-level financials</span>
+                  <span>{t("swarm.x.1")}</span>
                   <ChevronRight className="w-4 h-4" />
                 </button>
               </div>
@@ -826,7 +828,7 @@ export const SwarmPage: React.FC = () => {
             >
               <div className="flex items-center justify-between border-b border-slate-700/80 pb-3">
                 <h3 className="font-display font-bold text-white text-base">
-                  Replace a Shop on the Team
+                  {t("swarm.43")}
                 </h3>
                 <button
                   type="button"
@@ -838,18 +840,18 @@ export const SwarmPage: React.FC = () => {
               </div>
 
               <p className="text-xs text-slate-300 leading-relaxed">
-                A backup applicant from actual records must be reallocated before accepting the order:
+                {t("swarm.44")}
               </p>
 
               <div className="p-4 rounded-xl border border-teal-500/40 bg-teal-950/30 space-y-2">
                 <div className="flex items-center justify-between">
                   <div className="font-bold text-xs text-white">{replacement?.name || "No backup shop meets the known requirements"}</div>
                   <span className="text-[10px] text-teal-300 bg-teal-950 px-2 py-0.5 rounded-full border border-teal-800 font-bold">
-                    {replacement ? "Awaiting calculation" : "No applicants"}
+                    {replacement ? t("swarm.45") : t("swarm.46")}
                   </span>
                 </div>
                 <div className="text-[11px] text-slate-400">
-                  {replacement ? `Available capacity ${replacement.capacityAvailable} · Cost ฿${replacement.costPerUnit} · Cash ฿${amount(replacement.currentCash)}` : "Add an eligible shop before continuing."}
+                  {replacement ? t("swarm.tpl.replacement", { cap: replacement.capacityAvailable, cost: replacement.costPerUnit, cash: amount(replacement.currentCash) }) : t("swarm.47")}
                 </div>
                 <button
                   type="button"
@@ -857,7 +859,7 @@ export const SwarmPage: React.FC = () => {
                   disabled={!replacement || isAssembling}
                   className="w-full py-2 bg-gradient-to-r from-teal-500 to-emerald-500 text-white text-xs font-bold rounded-xl hover:opacity-95 transition-all mt-2 shadow-lg cursor-pointer"
                 >
-                  Recalculate team after replacement
+                  {t("swarm.48")}
                 </button>
               </div>
             </div>

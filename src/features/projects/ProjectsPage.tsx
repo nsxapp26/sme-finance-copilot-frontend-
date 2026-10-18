@@ -20,8 +20,10 @@ import {
   TrendingDown,
   TrendingUp,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const ProjectsPage: React.FC = () => {
+  const t = useT();
   const { setStoryModeOpen, addToast } = useAppStore();
   const [selectedProjectId, setSelectedProjectId] = useState<string>("");
   const state = useEnvelope<ProjectRecord[]>(useCallback(() => apiClient.getProjectRecords(), []));
@@ -29,15 +31,15 @@ export const ProjectsPage: React.FC = () => {
   const mode = envelopeMode(state, (rows) => rows.length === 0);
   const capabilityState = useCapabilities();
   const canExport = capabilityState.isAvailable("reportExport");
-  const exportBlockedReason = capabilityState.reasonFor("reportExport", "The backend does not support report file generation yet.");
+  const exportBlockedReason = capabilityState.reasonFor("reportExport", t("projects.x.1"));
 
   const handleExportPoster = () => {
     // /capabilities declares reportExport unavailable: no file is generated and
     // nothing is queued for download.
     addToast({
       type: "warning",
-      title: "Report export is not available yet",
-      message: `No file was created or downloaded · ${exportBlockedReason} · Use Story Mode to present on screen.`,
+      title: t("projects.1"),
+      message: t("projects.tpl.noFile", { reason: exportBlockedReason }),
       duration: 9000,
     });
   };
@@ -58,8 +60,8 @@ export const ProjectsPage: React.FC = () => {
       <div className="pb-4">
         <StateRenderer
           currentMode={mode === "error" ? "error" : mode === "unavailable" ? "unavailable" : "insufficient_data"}
-          errorMessage={error || "Could not load projects from the backend"}
-          unavailableReason="No projects have been saved in the database."
+          errorMessage={error || t("projects.2")}
+          unavailableReason={t("projects.x.2")}
           missingItems={projectsEnvelope?.missing || []}
           onRetry={loadData}
         >
@@ -78,19 +80,19 @@ export const ProjectsPage: React.FC = () => {
     <StateRenderer onRetry={loadData}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold">
                 <FileCheck2 className="w-4 h-4" />
               </div>
               <h1 className="text-xl font-display font-bold text-ink">
-                Projects & Actual Performance Reports (Post-Mortem)
+                {t("projects.w1")}
               </h1>
               <DataKindBadge kind={projectsEnvelope.kind} size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Track delivery schedules, record actual transactions, and compare results after each project.
+              {t("projects.3")}
             </p>
           </div>
 
@@ -101,7 +103,7 @@ export const ProjectsPage: React.FC = () => {
               className="px-4 py-2 bg-gradient-to-r from-navy-deep to-brand hover:opacity-95 text-white rounded-btn text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all cursor-pointer"
             >
               <PlayCircle className="w-4 h-4 text-brand-glow animate-pulse" />
-              <span>Open Story Mode</span>
+              <span>{t("projects.4")}</span>
             </button>
 
             <button
@@ -112,7 +114,7 @@ export const ProjectsPage: React.FC = () => {
               className="px-3.5 py-2 bg-white border border-borderLine hover:border-brand text-xs font-semibold rounded-btn flex items-center gap-1.5 transition-colors cursor-pointer"
             >
               <Download className="w-3.5 h-3.5" />
-              <span>{canExport ? "Download project summary (Poster)" : "File export is not available yet"}</span>
+              <span>{canExport ? t("projects.5") : t("projects.6")}</span>
             </button>
           </div>
         </div>
@@ -147,20 +149,20 @@ export const ProjectsPage: React.FC = () => {
           <div className="flex items-center justify-between border-b border-slate-100 pb-3">
             <div>
               <span className="text-[10px] font-bold text-brand uppercase tracking-wider block">
-                10-Day Delivery Schedule
+                {t("projects.x.3")}
               </span>
               <h3 className="font-display font-bold text-sm text-ink leading-snug">
                 {activeProj.title} ({activeProj.clientName})
               </h3>
             </div>
             <div className="text-right text-xs">
-              <span className="text-ink-muted block text-[10px]">Progress</span>
+              <span className="text-ink-muted block text-[10px]">{t("projects.7")}</span>
               <span className="font-bold font-mono text-brand text-sm">{activeProj.progressPercent}%</span>
             </div>
           </div>
 
           {/* Delivery Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 text-center text-xs">
+          <div data-tilt-grid className="grid grid-cols-2 sm:grid-cols-5 lg:grid-cols-10 gap-2 text-center text-xs">
             {activeProj.deliverySchedule.map((ds) => (
               <div
                 key={ds.day}
@@ -172,13 +174,13 @@ export const ProjectsPage: React.FC = () => {
                     : "bg-slate-50 border-slate-200 text-slate-600"
                 }`}
               >
-                <span className="font-bold font-mono text-[10px] block">Day {ds.day}</span>
+                <span className="font-bold font-mono text-[10px] block">{t("projects.m1", { day: ds.day })}</span>
                 <span className="text-[11px] block">{ds.date}</span>
                 <span className="font-bold font-mono text-[11px] block mt-1">
                   {ds.deliveredUnits}/{ds.targetUnits}
                 </span>
                 <span className="text-[9px] block mt-0.5 font-semibold">
-                  {ds.status === "done" ? "✓ Delivered" : ds.status === "delayed" ? "⚠ Delayed" : "Pending"}
+                  {ds.status === "done" ? t("projects.8") : ds.status === "delayed" ? t("projects.9") : t("projects.10")}
                 </span>
               </div>
             ))}
@@ -192,54 +194,54 @@ export const ProjectsPage: React.FC = () => {
               <div>
                 <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-1.5">
                   <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                  <span>Actual Results vs. Plan (Post-Mortem Review)</span>
+                  <span>{t("projects.x.4")}</span>
                 </h3>
                 <p className="text-[11px] text-ink-muted">
-                  Were all items delivered? How did costs compare with the forecast? How much cash did each shop retain?
+                  {t("projects.11")}
                 </p>
               </div>
               <DataKindBadge kind={projectsEnvelope.kind} size="sm" />
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
+            <div data-tilt-grid className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
               <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-ink-muted block">On-time delivery rate</span>
+                <span className="text-[10px] text-ink-muted block">{t("projects.x.5")}</span>
                 <span className="text-xl font-bold font-mono text-emerald-700">
                   {activeProj.postMortem.unitsFulfillmentPercent}%
                 </span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">{activeProj.postMortem.actualUnits.toLocaleString()} / {activeProj.postMortem.plannedUnits.toLocaleString()} units</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">{t("projects.m2", { actualUnits: activeProj.postMortem.actualUnits.toLocaleString(), plannedUnits: activeProj.postMortem.plannedUnits.toLocaleString() })}</span>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-ink-muted block">Cost variance</span>
+                <span className="text-[10px] text-ink-muted block">{t("projects.12")}</span>
                 <span className="text-xl font-bold font-mono text-emerald-700">
                   {activeProj.postMortem.costVariancePercent}%
                 </span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">Plan ฿{activeProj.postMortem.plannedCost.toLocaleString()} · Actual ฿{activeProj.postMortem.actualCost.toLocaleString()}</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">{t("projects.m3", { plannedCost: activeProj.postMortem.plannedCost.toLocaleString(), actualCost: activeProj.postMortem.actualCost.toLocaleString() })}</span>
               </div>
 
               <div className="p-3 bg-slate-50 rounded-xl">
-                <span className="text-[10px] text-ink-muted block">Payment delay</span>
+                <span className="text-[10px] text-ink-muted block">{t("projects.13")}</span>
                 <span className="text-xl font-bold font-mono text-ink">
-                  +{activeProj.postMortem.paymentDelayDays} days
+                  {t("projects.r.delay", { n: activeProj.postMortem.paymentDelayDays })}
                 </span>
-                <span className="text-[10px] text-slate-400 block mt-0.5">Payment received {activeProj.postMortem.actualPaymentDate || "date not recorded"}</span>
+                <span className="text-[10px] text-slate-400 block mt-0.5">{t("projects.r.paid", { date: activeProj.postMortem.actualPaymentDate || t("projects.r.nodate") })}</span>
               </div>
 
               <div className="p-3 bg-brand/5 border border-brand/20 rounded-xl">
-                <span className="text-[10px] font-bold text-brand block">Net profit by shop</span>
+                <span className="text-[10px] font-bold text-brand block">{t("projects.14")}</span>
                 <span className="text-xl font-extrabold font-mono text-brand">
-                  {activeProj.postMortem.shopNetProfits.length} shops
+                  {t("projects.m4", { shopNetProfits: activeProj.postMortem.shopNetProfits.length })}
                 </span>
                 {/* backend ไม่ได้ส่งยอดรวมมา เลยไม่บวกเองใน React ดูรายร้านด้านล่าง */}
-                <span className="text-[10px] text-brand/80 block mt-0.5">See each shop below · total not provided by the backend</span>
+                <span className="text-[10px] text-brand/80 block mt-0.5">{t("projects.15")}</span>
               </div>
             </div>
 
             {/* Per-Shop Net Profits Table */}
             <div className="pt-2">
-              <span className="text-xs font-bold text-ink block mb-2">Actual net profit received by each shop:</span>
-              <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+              <span className="text-xs font-bold text-ink block mb-2">{t("projects.16")}</span>
+              <div data-tilt-grid className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
                 {activeProj.postMortem.shopNetProfits.map((sp, idx) => (
                   <div key={idx} className="p-2.5 bg-emerald-50/50 border border-emerald-200 rounded-xl">
                     <span className="font-semibold text-ink block truncate">{sp.shopName}</span>

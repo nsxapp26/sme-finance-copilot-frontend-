@@ -7,6 +7,7 @@ import {
   Coins,
   Receipt,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 interface EventPinProps {
   event: FinancialEvent;
@@ -23,12 +24,13 @@ export const EventPin: React.FC<EventPinProps> = ({
   onClick,
   className = "",
 }) => {
+  const t = useT();
   const getPinConfig = (type: FinancialEventType) => {
     switch (type) {
       case "buy_materials":
         return {
           icon: <ShoppingCart className="w-3.5 h-3.5" />,
-          label: "Buy ingredients",
+          label: t("pin.1"),
           bg: "bg-amber-500 text-white",
           ring: "ring-amber-300",
           border: "border-amber-600",
@@ -36,7 +38,7 @@ export const EventPin: React.FC<EventPinProps> = ({
       case "produce":
         return {
           icon: <ChefHat className="w-3.5 h-3.5" />,
-          label: "Production",
+          label: t("pin.2"),
           bg: "bg-brand text-white",
           ring: "ring-brand-glow",
           border: "border-brand-dark",
@@ -44,7 +46,7 @@ export const EventPin: React.FC<EventPinProps> = ({
       case "deliver":
         return {
           icon: <Truck className="w-3.5 h-3.5" />,
-          label: "Delivery",
+          label: t("pin.3"),
           bg: "bg-blue-500 text-white",
           ring: "ring-blue-300",
           border: "border-blue-600",
@@ -52,7 +54,7 @@ export const EventPin: React.FC<EventPinProps> = ({
       case "receive_payment":
         return {
           icon: <Coins className="w-3.5 h-3.5" />,
-          label: "Payment received",
+          label: t("pin.4"),
           bg: "bg-emerald-500 text-white",
           ring: "ring-emerald-300",
           border: "border-emerald-600",
@@ -60,7 +62,7 @@ export const EventPin: React.FC<EventPinProps> = ({
       case "pay_obligations":
         return {
           icon: <Receipt className="w-3.5 h-3.5" />,
-          label: "Obligation payment",
+          label: t("pin.5"),
           bg: "bg-rose-500 text-white",
           ring: "ring-rose-300",
           border: "border-rose-600",

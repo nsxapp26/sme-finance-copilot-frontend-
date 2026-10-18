@@ -24,8 +24,10 @@ import {
   Sliders,
   CheckCircle2,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const UnlockPage: React.FC = () => {
+  const t = useT();
   const {
     detachedResourceIds,
     toggleDetachResource,
@@ -45,7 +47,7 @@ export const UnlockPage: React.FC = () => {
   const mode = envelopeMode(state, (rows) => rows.length === 0);
   const capabilityState = useCapabilities();
   const canReserve = capabilityState.isAvailable("resourceReservation");
-  const reserveBlockedReason = capabilityState.reasonFor("resourceReservation", "The backend does not support resource reservations yet.");
+  const reserveBlockedReason = capabilityState.reasonFor("resourceReservation", t("unlock.x.1"));
 
   // Taking a resource out of the plan is recomputed by the engine through
   // POST /simulate/order with unavailable_resource_ids. The browser does not
@@ -56,7 +58,7 @@ export const UnlockPage: React.FC = () => {
   const outageSequence = React.useRef(0);
 
   const recomputeOutage = async (resourceIds: string[]) => {
-    if (apiClient.isDemoMode()) { setOutage({ comparison: null, error: "The demo mode does not calculate results with the engine.", pending: false }); return; }
+    if (apiClient.isDemoMode()) { setOutage({ comparison: null, error: t("unlock.1"), pending: false }); return; }
     if (resourceIds.length === 0) { setOutage({ comparison: null, error: "", pending: false }); return; }
     const id = ++outageSequence.current;
     setOutage((previous) => ({ ...previous, pending: true, error: "" }));
@@ -69,7 +71,7 @@ export const UnlockPage: React.FC = () => {
       const applicable = resourceIds.filter((value) => known.has(value));
       if (applicable.length === 0) {
         if (outageSequence.current === id) setOutage({ comparison: null, pending: false,
-          error: "The selected resource is not linked to the order being assembled, so its impact cannot be calculated." });
+          error: t("unlock.2") });
         return;
       }
       const result = await apiClient.simulateOrder(context, {
@@ -95,9 +97,9 @@ export const UnlockPage: React.FC = () => {
     void recomputeOutage(next);
     addToast({
       type: "info",
-      title: isNowDetached ? "Remove from plan and recalculate" : "Restore to plan and recalculate",
-      message: `'${res.title}' · The engine will preview a new order allocation (persist=false)`
-        + ` · Live resource status remains unchanged and nothing is reserved (${reserveBlockedReason})`,
+      title: isNowDetached ? t("unlock.3") : t("unlock.4"),
+      message: t("unlock.tpl.preview", { title: res.title })
+        + ` · ${t("unlock.tpl.unchanged", { reason: reserveBlockedReason })}`,
       duration: 9000,
     });
   };
@@ -124,8 +126,8 @@ export const UnlockPage: React.FC = () => {
     return (
       <StateRenderer
         currentMode={mode === "error" ? "error" : mode === "unavailable" ? "unavailable" : "insufficient_data"}
-        errorMessage={error || "Could not load shareable resources from the backend"}
-        unavailableReason="No resources are available for sharing in the database."
+        errorMessage={error || t("unlock.5")}
+        unavailableReason={t("unlock.x.2")}
         missingItems={resourcesEnvelope?.missing || []}
         onRetry={loadData}
       >
@@ -139,36 +141,36 @@ export const UnlockPage: React.FC = () => {
   const planA = outage.comparison?.data.planA;
   const planB = outage.comparison?.data.planB;
   const amount = (value: number | string | null | undefined) =>
-    value == null ? "No data" : `฿${Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    value == null ? t("unlock.6") : `฿${Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   const outageSummary = outage.pending
-    ? "The engine is reallocating the order…"
+    ? t("unlock.7")
     : outage.error
     ? outage.error
     : planA && planB
-    ? `Allocated capacity: ${planB.totalCapacityAssigned} (was ${planA.totalCapacityAssigned})`
-      + ` · Capacity shortfall: ${planB.deficitBoxesPerDay} per day (was ${planA.deficitBoxesPerDay})`
-      + ` · Order profit: ${amount(planB.totalProfit)} (was ${amount(planA.totalProfit)})`
-      + ` · Funding gap: ${amount(planB.totalFundingGap)} (was ${amount(planA.totalFundingGap)})`
-    : "No engine results yet.";
+    ? t("unlock.tpl.capacity", { now: planB.totalCapacityAssigned, was: planA.totalCapacityAssigned })
+      + ` · ${t("unlock.tpl.shortfall", { now: planB.deficitBoxesPerDay, was: planA.deficitBoxesPerDay })}`
+      + ` · ${t("unlock.tpl.profit", { now: amount(planB.totalProfit), was: amount(planA.totalProfit) })}`
+      + ` · ${t("unlock.tpl.gap", { now: amount(planB.totalFundingGap), was: amount(planA.totalFundingGap) })}`
+    : t("unlock.8");
 
   return (
     <StateRenderer onRetry={loadData}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-resource text-white flex items-center justify-center font-bold">
                 <Wrench className="w-4 h-4" />
               </div>
               <h1 className="text-xl font-display font-bold text-ink">
-                SME UNLOCK: Unlock & Share Resources
+                {t("unlock.9")}
               </h1>
               <DataKindBadge kind={resourcesEnvelope.kind} size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Review resources offered by their owners · Remove a resource from the plan to preview a new engine allocation
-              (nothing is reserved or changed in the live system)
+              {t("unlock.10")}
+              {t("unlock.r.nothing")}
             </p>
           </div>
 
@@ -180,7 +182,7 @@ export const UnlockPage: React.FC = () => {
                 className="px-3 py-1.5 bg-white border border-borderLine hover:border-brand/40 text-xs font-semibold rounded-btn flex items-center gap-1.5 transition-colors"
               >
                 <RotateCcw className="w-3.5 h-3.5 text-ink-muted" />
-                <span>Restore all resources ({detachedResourceIds.length})</span>
+                <span>{t("unlock.m1", { detachedResourceIds: detachedResourceIds.length })}</span>
               </button>
             )}
 
@@ -189,7 +191,7 @@ export const UnlockPage: React.FC = () => {
               onClick={() => setCurrentPage("swarm")}
               className="px-4 py-1.5 bg-brand hover:bg-brand-dark text-white text-xs font-bold rounded-btn flex items-center gap-1.5 shadow-sm transition-all"
             >
-              <span>Return to SWARM team assembly</span>
+              <span>{t("unlock.11")}</span>
               <ArrowRight className="w-3.5 h-3.5" />
             </button>
           </div>
@@ -204,11 +206,11 @@ export const UnlockPage: React.FC = () => {
               </div>
               <div>
                 <h3 className="font-bold text-xs uppercase tracking-wider">
-                  Simulate removing resources ({detachedResourceIds.length}) · Recalculate this order only
+                  {t("unlock.m2", { detachedResourceIds: detachedResourceIds.length })}
                 </h3>
                 <p className="text-xs text-red-900 mt-0.5">
                   <strong>{outageSummary}</strong>
-                  {planB ? " · Preview only; live allocations and resource status are unchanged." : ""}
+                  {planB ? t("unlock.12") : ""}
                 </p>
               </div>
             </div>
@@ -218,7 +220,7 @@ export const UnlockPage: React.FC = () => {
               onClick={() => { resetSimulation(); void recomputeOutage([]); }}
               className="px-4 py-1.5 bg-danger text-white text-xs font-bold rounded-btn hover:bg-danger-dark transition-all shrink-0"
             >
-              Restore all resources in the simulation plan
+              {t("unlock.13")}
             </button>
           </div>
         )}
@@ -229,45 +231,45 @@ export const UnlockPage: React.FC = () => {
             <div>
               <h3 className="font-display font-bold text-xs uppercase tracking-wider text-ink flex items-center gap-1.5">
                 <Sparkles className="w-4 h-4 text-resource-dark" />
-                <span>Value Unlocked Comparison</span>
+                <span>{t("unlock.14")}</span>
               </h3>
               <p className="text-[11px] text-ink-muted">
-                Purchase quotes and actual usage hours are required to compare buying vs. sharing ·
-                The backend does not store these values yet.
+                {t("unlock.15")}
+                {t("unlock.16")}
               </p>
             </div>
             <DataKindBadge kind="simulated" size="sm" />
           </div>
 
           {/* Side-by-Side Split View */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div data-tilt-grid className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {/* Column A: Buy Individually */}
             <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
               <span className="text-[10px] font-bold text-ink-muted uppercase tracking-wider block">
-                Previous approach: Each shop buys its own equipment
+                {t("unlock.17")}
               </span>
-              <div className="text-2xl font-extrabold font-mono text-ink">No data</div>
+              <div className="text-2xl font-extrabold font-mono text-ink">{t("unlock.6")}</div>
               <p className="text-[11px] text-ink-muted leading-relaxed">
-                A purchase quote for this shop (investment_cash_schedule) is required to calculate total investment.
+                {t("unlock.w1")}
               </p>
               <div className="text-[10px] text-danger font-medium mt-2">
-                ✕ No purchase price evidence in the system
+                {t("unlock.18")}
               </div>
             </div>
 
             {/* Column B: Shared Opportunity via SME UNLOCK */}
             <div className="p-4 rounded-xl bg-resource-light/60 border border-resource/40 space-y-2">
               <span className="text-[10px] font-bold text-resource-dark uppercase tracking-wider block">
-                New approach: Share resources through SME UNLOCK
+                {t("unlock.19")}
               </span>
-              <div className="text-2xl font-extrabold font-mono text-resource-dark">No data</div>
+              <div className="text-2xl font-extrabold font-mono text-resource-dark">{t("unlock.6")}</div>
               <p className="text-[11px] text-ink-muted leading-relaxed">
-                {allResources.length} resources are available for sharing · Each service rate is shown on its card below,
-                but verified usage hours are not available for a combined total.
+                {t("unlock.r.count", { n: allResources.length })}
+                {t("unlock.20")}
               </p>
               <div className="text-[11px] text-resource-dark font-bold mt-2 flex items-center gap-1">
                 <CheckCircle2 className="w-3.5 h-3.5" />
-                <span>Savings: Cannot calculate yet</span>
+                <span>{t("unlock.21")}</span>
               </div>
             </div>
           </div>
@@ -277,10 +279,10 @@ export const UnlockPage: React.FC = () => {
         <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
           {[
             { id: "all", label: `All (${allResources.length})` },
-            { id: "kitchen", label: "🍳 Shared kitchens" },
-            { id: "truck", label: "🚚 Refrigerated vehicles" },
-            { id: "machine", label: "⚙️ Packaging equipment" },
-            { id: "team", label: "👥 Temporary staff" },
+            { id: "kitchen", label: t("unlock.22") },
+            { id: "truck", label: t("unlock.23") },
+            { id: "machine", label: t("unlock.24") },
+            { id: "team", label: t("unlock.25") },
           ].map((cat) => (
             <button
               key={cat.id}
@@ -298,7 +300,7 @@ export const UnlockPage: React.FC = () => {
         </div>
 
         {/* Resources Grid with Detach Buttons (Signature S5) */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div data-tilt-grid className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {filteredResources.map((res) => {
             const isDetached = detachedResourceIds.includes(res.id);
             return (

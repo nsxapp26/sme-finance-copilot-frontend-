@@ -67,7 +67,7 @@ export const SalesPage: React.FC = () => {
     const missingKeys = [...new Set([...(productsEnvelope?.missing || []), ...(channelsEnvelope?.missing || [])])];
     return (
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-5 text-ink animate-fade-in">
-        <div className="border-b border-borderLine pb-4">
+        <div className="page-header">
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-display font-bold text-ink">{t("sales.title")}</h1>
             <DataKindBadge kind={accepted?.input.kind ?? "simulated"} size="md" />
@@ -113,7 +113,7 @@ export const SalesPage: React.FC = () => {
     <StateRenderer currentMode={stale ? "stale" : undefined} onRetry={loadData} onReanalyze={() => setCurrentPage("import")}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-xl bg-brand text-white flex items-center justify-center font-bold">

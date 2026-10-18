@@ -9,6 +9,7 @@ import {
   ChevronRight,
   Calculator,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 interface FundingChipProps {
   funding: FundingOption;
@@ -29,6 +30,7 @@ export const FundingChip: React.FC<FundingChipProps> = ({
   onApply,
   className = "",
 }) => {
+  const t = useT();
   return (
     <div
       onClick={onSelect}
@@ -54,7 +56,7 @@ export const FundingChip: React.FC<FundingChipProps> = ({
         <div className="flex flex-col items-end">
           <div className="flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-chip border border-emerald-200 text-xs font-bold tabular-nums">
             <Sparkles className="w-3 h-3 text-emerald-500" />
-            <span>{funding.matchScore}% match</span>
+            <span>{t("fchip.m1", { matchScore: funding.matchScore })}</span>
           </div>
         </div>
       </div>
@@ -62,22 +64,22 @@ export const FundingChip: React.FC<FundingChipProps> = ({
       {/* Financial Details Grid */}
       <div className="grid grid-cols-3 gap-2 bg-slate-50 p-2.5 rounded-xl text-center my-3 border border-slate-100">
         <div>
-          <span className="text-[10px] text-ink-muted block">Maximum funding</span>
+          <span className="text-[10px] text-ink-muted block">{t("fchip.1")}</span>
           <span className="text-xs font-bold text-ink tabular-nums">
             ฿{funding.maxAmount.toLocaleString()}
           </span>
         </div>
         <div className="border-x border-slate-200">
-          <span className="text-[10px] text-ink-muted block">Interest</span>
+          <span className="text-[10px] text-ink-muted block">{t("fchip.2")}</span>
           <span className="text-xs font-bold text-brand tabular-nums">
-            {(funding.interestRateAnnual * 100).toLocaleString("en-US", { maximumFractionDigits: 2 })}% per year
+            {t("fchip.m2", { interestRateAnnual: (funding.interestRateAnnual * 100).toLocaleString("en-US", { maximumFractionDigits: 2 }) })}
           </span>
         </div>
         <div>
-          <span className="text-[10px] text-ink-muted block">Disbursed in</span>
+          <span className="text-[10px] text-ink-muted block">{t("fchip.3")}</span>
           <span className="text-xs font-bold text-emerald-700 tabular-nums flex items-center justify-center gap-0.5">
             <Clock className="w-3 h-3" />
-            {funding.disbursementDays} days
+            {t("fchip.m3", { disbursementDays: funding.disbursementDays })}
           </span>
         </div>
       </div>
@@ -102,7 +104,7 @@ export const FundingChip: React.FC<FundingChipProps> = ({
               className="px-2 py-1 text-xs font-medium text-ink-muted hover:text-brand hover:bg-brand/10 rounded-lg flex items-center gap-1 transition-colors"
             >
               <Calculator className="w-3 h-3" />
-              <span>Estimate repayments</span>
+              <span>{t("fchip.4")}</span>
             </button>
           )}
           {onApply && (
@@ -114,7 +116,7 @@ export const FundingChip: React.FC<FundingChipProps> = ({
               }}
               className="px-2.5 py-1 text-xs font-semibold text-white bg-brand hover:bg-brand-dark rounded-btn flex items-center gap-1 transition-all shadow-sm"
             >
-              <span>Prepare application</span>
+              <span>{t("fchip.5")}</span>
               <ChevronRight className="w-3 h-3" />
             </button>
           )}

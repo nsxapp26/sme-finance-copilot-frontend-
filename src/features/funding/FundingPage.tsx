@@ -19,8 +19,10 @@ import {
   Sliders,
   RotateCcw,
 } from "lucide-react";
+import { tr, useT } from "@/i18n";
 
 export const FundingPage: React.FC = () => {
+  const t = useT();
   const { setCurrentPage, addToast, selectedShopId } = useAppStore();
   const { accepted, stale } = useAnalysisContext();
   const [selectedFundingId, setSelectedFundingId] = useState<string>("");
@@ -46,10 +48,10 @@ export const FundingPage: React.FC = () => {
 
   const capabilityState = useCapabilities();
   const canApply = capabilityState.isAvailable("fundingApplication");
-  const applyBlockedReason = capabilityState.reasonFor("fundingApplication", "The backend does not support loan applications yet.");
+  const applyBlockedReason = capabilityState.reasonFor("fundingApplication", t("funding.x.1"));
 
   const amount = (value: string | number | null | undefined) =>
-    value == null || value === "" ? "No data" : `฿${Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
+    value == null || value === "" ? t("funding.1") : `฿${Number(value).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
   // Values supplied in the statement being graded, shown as supplied figures.
   const supplied = (field: string) => {
     const value = accepted?.input?.[field];
@@ -64,8 +66,8 @@ export const FundingPage: React.FC = () => {
     // no persistence and no status transition behind this button.
     addToast({
       type: "warning",
-      title: "Loan applications are not available yet",
-      message: `${applyBlockedReason} · Results are ranked using the submitted numeric criteria; they are not loan approvals.`,
+      title: t("funding.2"),
+      message: t("funding.tpl.blocked", { reason: applyBlockedReason }),
       duration: 9000,
     });
   };
@@ -87,7 +89,7 @@ export const FundingPage: React.FC = () => {
 
   if (!fundingEnvelope || error) {
     return (
-      <StateRenderer currentMode="error" errorMessage={error || "Could not load funding options from the backend"} onRetry={loadData}>
+      <StateRenderer currentMode="error" errorMessage={error || t("funding.3")} onRetry={loadData}>
         {null}
       </StateRenderer>
     );
@@ -100,8 +102,8 @@ export const FundingPage: React.FC = () => {
       <StateRenderer
         currentMode="unavailable"
         unavailableReason={evaluation?.notRequired
-          ? "This statement has no funding gap (funding gap = 0), so no funders are ranked."
-          : "No funding options match this statement · A calculated funding gap is required first."}
+          ? t("funding.4")
+          : t("funding.5")}
         missingItems={fundingEnvelope.missing}
         onRetry={loadData}
         onAddData={() => setCurrentPage("import")}
@@ -115,16 +117,16 @@ export const FundingPage: React.FC = () => {
     <StateRenderer currentMode={stale ? "stale" : undefined} onRetry={loadData} onReanalyze={() => setCurrentPage("import")}>
       <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
         {/* Header Bar */}
-        <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+        <div className="page-header flex flex-wrap items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <h1 className="text-xl font-display font-bold text-ink">
-                Project-Specific Smart Funding Matcher
+                {t("funding.x.2")}
               </h1>
               <DataKindBadge kind={fundingEnvelope?.kind ?? "forecast"} size="md" />
             </div>
             <p className="text-xs text-ink-muted mt-0.5">
-              Cover only the shortfall needed to start work. Compare interest rates and disbursement speed.
+              {t("funding.6")}
             </p>
           </div>
 
@@ -135,66 +137,66 @@ export const FundingPage: React.FC = () => {
               className="px-3 py-1.5 bg-resource-light hover:bg-resource/20 border border-resource/30 text-resource-dark text-xs font-semibold rounded-btn flex items-center gap-1.5 transition-colors"
             >
               <Coins className="w-3.5 h-3.5" />
-              <span>Reduce funding needs with SME UNLOCK</span>
+              <span>{t("funding.7")}</span>
             </button>
           </div>
         </div>
 
         {/* Top Summary Banner: ต้องใช้ / มีใช้ได้ / ยังขาด / ต้องใช้วันไหน */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 rounded-card border border-borderLine shadow-soft-sm">
+        <div data-tilt className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 rounded-card border border-borderLine shadow-soft-sm">
           <div>
             <span className="text-[10px] text-ink-muted block uppercase tracking-wider">
-              Total working capital required
+              {t("funding.8")}
             </span>
             <span className="text-lg font-bold font-mono text-ink">{amount(supplied("working_capital_needed"))}</span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
-              {supplied("working_capital_needed") == null ? "Missing working_capital_needed in statement" : "As reported in this statement"}
+              {supplied("working_capital_needed") == null ? t("funding.9") : t("funding.10")}
             </span>
           </div>
 
           <div>
             <span className="text-[10px] text-ink-muted block uppercase tracking-wider">
-              Current cash on hand
+              {t("funding.11")}
             </span>
             <span className="text-lg font-bold font-mono text-ink">{amount(overview?.cashBalance)}</span>
             <span className="text-[10px] text-slate-400 block mt-0.5">
-              {overview?.cashBalance == null ? "Missing cash_balance in statement" : `After reserve: ${amount(overview?.usableCashAfterReserve)}`}
+              {overview?.cashBalance == null ? t("funding.12") : t("funding.tpl.afterReserve", { amount: amount(overview?.usableCashAfterReserve) })}
             </span>
           </div>
 
           <div className="border-x border-slate-100 px-3">
             <span className="text-[10px] font-bold text-danger block uppercase tracking-wider">
-              Funding gap
+              {t("funding.13")}
             </span>
             <span className="text-lg font-extrabold font-mono text-danger tabular-nums">
-              {evaluation ? amount(evaluation.requestedAmount) : "No data"}
+              {evaluation ? amount(evaluation.requestedAmount) : t("funding.1")}
             </span>
             <span className="text-[10px] text-danger font-medium block mt-0.5">
               {!evaluation
-                ? "Import a statement to calculate the funding gap"
+                ? t("funding.14")
                 : evaluation.notRequired
-                ? "This statement has no funding gap (known value of zero)"
+                ? t("funding.15")
                 : evaluation.requestedAmount == null
-                ? "Cannot calculate; this is not zero"
-                : `Grade ${evaluation.grade || "Unknown"} · Score ${evaluation.gradeScore || "Unknown"}`}
+                ? t("funding.16")
+                : `Grade ${evaluation.grade || t("funding.17")} · Score ${evaluation.gradeScore || t("funding.17")}`}
             </span>
           </div>
 
           <div>
             <span className="text-[10px] text-brand block uppercase tracking-wider font-semibold">
-              Cash needed by
+              {t("funding.18")}
             </span>
             <span className="text-lg font-bold font-mono text-brand">
               {accepted?.result.views.forecast?.data?.first_shortfall_date
                 || accepted?.result.views.forecast?.data?.conditional_first_shortfall_date
-                || "No data"}
+                || t("funding.1")}
             </span>
             <span className="text-[10px] text-emerald-700 font-medium block mt-0.5">
               {accepted?.result.views.forecast?.data?.first_shortfall_date
-                ? "Date cash falls below zero in the dated schedule"
+                ? t("funding.19")
                 : accepted?.result.views.forecast?.data?.conditional_first_shortfall_date
-                ? "Based on stated terms; actual receipt date is not confirmed"
-                : "A dated cash inflow/outflow schedule is required for this business."}
+                ? t("funding.20")
+                : t("funding.21")}
             </span>
           </div>
         </div>
@@ -205,21 +207,21 @@ export const FundingPage: React.FC = () => {
             type="button"
             className="px-3 py-1 bg-white shadow-2xs font-semibold rounded-lg text-brand flex items-center gap-1"
           >
-            <span>1. Find funding options</span>
+            <span>{t("funding.22")}</span>
           </button>
           <button
             type="button"
             onClick={() => setIsComparing(!isComparing)}
             className="px-3 py-1 text-ink-muted hover:text-ink font-medium rounded-lg"
           >
-            <span>2. Compare {isComparing ? "(Hide)" : "(Show)"}</span>
+            <span>{isComparing ? t("funding.r.hide") : t("funding.r.show")}</span>
           </button>
           <button
             type="button"
             onClick={() => setCurrentPage("unlock")}
             className="px-3 py-1 text-ink-muted hover:text-resource-dark font-medium rounded-lg"
           >
-            <span>3. Reduce costs by sharing resources</span>
+            <span>{t("funding.23")}</span>
           </button>
           <button
             type="button"
@@ -227,7 +229,7 @@ export const FundingPage: React.FC = () => {
             title={canApply ? undefined : applyBlockedReason}
             className="px-3 py-1 bg-brand text-white font-semibold rounded-lg ml-auto flex items-center gap-1"
           >
-            <span>{canApply ? "4. Prepare application" : "4. Review required documents"}</span>
+            <span>{canApply ? t("funding.24") : t("funding.25")}</span>
             <ArrowRight className="w-3 h-3" />
           </button>
         </div>
@@ -236,18 +238,18 @@ export const FundingPage: React.FC = () => {
         {isComparing && (
           <div className="p-4 bg-white rounded-card border border-borderLine shadow-soft-sm space-y-3">
             <h3 className="text-xs font-display font-bold text-ink uppercase tracking-wider">
-              Funding Comparison Matrix
+              {t("funding.26")}
             </h3>
             <div className="overflow-x-auto">
               <table className="w-full text-xs text-left">
                 <thead>
                   <tr className="border-b border-slate-200 text-ink-muted">
-                    <th className="py-2">Funder</th>
-                    <th className="py-2">Type</th>
-                    <th className="py-2">Annual interest</th>
-                    <th className="py-2">Disbursement</th>
-                    <th className="py-2">Total repayment</th>
-                    <th className="py-2">Match</th>
+                    <th className="py-2">{t("funding.27")}</th>
+                    <th className="py-2">{t("funding.28")}</th>
+                    <th className="py-2">{t("funding.29")}</th>
+                    <th className="py-2">{t("funding.30")}</th>
+                    <th className="py-2">{t("funding.31")}</th>
+                    <th className="py-2">{t("funding.32")}</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100">
@@ -259,12 +261,12 @@ export const FundingPage: React.FC = () => {
                         {(opt.interestRateAnnual * 100).toLocaleString("en-US", { maximumFractionDigits: 2 })}%
                       </td>
                       <td className="py-2.5 font-bold font-mono text-emerald-700">
-                        {opt.disbursementDays} days
+                        {t("funding.m1", { disbursementDays: opt.disbursementDays })}
                       </td>
                       <td className="py-2.5 font-mono">฿{opt.totalRepayment.toLocaleString()}</td>
                       <td className="py-2.5">
                         <span className="font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded text-[11px]">
-                          {opt.matchScore}% match
+                          {t("funding.m2", { matchScore: opt.matchScore })}
                         </span>
                       </td>
                     </tr>
@@ -276,7 +278,7 @@ export const FundingPage: React.FC = () => {
         )}
 
         {/* Funding Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div data-tilt-grid className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {fundingOptions.map((funding) => (
             <FundingChip
               key={funding.id}
@@ -288,9 +290,9 @@ export const FundingPage: React.FC = () => {
                 setSelectedFundingId(funding.id);
                 addToast({
                   type: "info",
-                  title: `Repayment estimate from backend · ${funding.name}`,
-                  message: `${amount(funding.monthlyPayment)}/month for ${funding.termMonths} months · Total repayment: ${amount(funding.totalRepayment)}`
-                    + (funding.postFundingDscr ? ` · DSCR after funding: ${funding.postFundingDscr}` : " · DSCR after funding is unknown"),
+                  title: t("funding.tpl.repayTitle", { name: funding.name }),
+                  message: t("funding.tpl.repayBody", { monthly: amount(funding.monthlyPayment), months: funding.termMonths, total: amount(funding.totalRepayment) })
+                    + (funding.postFundingDscr ? ` · ${t("funding.tpl.dscr", { v: funding.postFundingDscr })}` : t("funding.33")),
                   duration: 9000,
                 });
               }}
@@ -307,7 +309,7 @@ export const FundingPage: React.FC = () => {
           <div className="flex items-center justify-between">
             <div>
               <span className="text-[10px] font-bold text-brand uppercase tracking-wider">
-                Approval Details & Required Documents
+                {t("funding.34")}
               </span>
               <h3 className="text-sm font-display font-bold text-ink">
                 {activeFunding.name}
@@ -318,7 +320,7 @@ export const FundingPage: React.FC = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
             <div className="space-y-2">
-              <span className="font-bold text-ink block">Required documents:</span>
+              <span className="font-bold text-ink block">{t("funding.35")}</span>
               <ul className="space-y-1 list-disc pl-4 text-ink-muted">
                 {activeFunding.requiredDocs.map((doc, idx) => (
                   <li key={idx}>{doc}</li>
@@ -327,7 +329,7 @@ export const FundingPage: React.FC = () => {
             </div>
 
             <div className="space-y-2">
-              <span className="font-bold text-ink block">Eligibility requirements:</span>
+              <span className="font-bold text-ink block">{t("funding.36")}</span>
               <ul className="space-y-1 list-disc pl-4 text-ink-muted">
                 {activeFunding.eligibilityConditions.map((cond, idx) => (
                   <li key={idx}>{cond}</li>
@@ -339,9 +341,9 @@ export const FundingPage: React.FC = () => {
           <div className="p-3 bg-brand/5 border border-brand/20 rounded-xl text-xs text-brand-dark flex items-start gap-2">
             <Sparkles className="w-4 h-4 text-brand shrink-0 mt-0.5" />
             <div>
-              <strong>Ranking policy ({activeFunding.policyVersion || "Version unknown"}):</strong>{" "}
+              <strong>Ranking policy ({activeFunding.policyVersion || t("funding.37")}):</strong>{" "}
               {activeFunding.matchReason}
-              {activeFunding.notice ? ` · ${activeFunding.notice}` : " · This ranking is not a loan approval."}
+              {activeFunding.notice ? ` · ${activeFunding.notice}` : t("funding.38")}
             </div>
           </div>
         </div>
@@ -358,7 +360,7 @@ export const FundingPage: React.FC = () => {
             >
               <div className="flex items-center justify-between border-b border-borderLine pb-3">
                 <h3 className="font-display font-bold text-ink text-sm">
-                  {canApply ? "Review working-capital application (Verification Step)" : "Review selected option (application not submitted)"}
+                  {canApply ? t("funding.x.3") : t("funding.39")}
                 </h3>
                 <button
                   type="button"
@@ -372,33 +374,33 @@ export const FundingPage: React.FC = () => {
               <div className="space-y-3 text-xs">
                 <div className="p-3 bg-slate-50 rounded-xl space-y-1">
                   <div className="font-bold text-ink">
-                    Statement used for ranking: {overview?.shopName || "No statement imported"}
-                    {accepted?.context.smeId ? "" : " · Not linked to a business in the database"}
+                    Statement used for ranking: {overview?.shopName || t("funding.40")}
+                    {accepted?.context.smeId ? "" : t("funding.41")}
                   </div>
                   <div className="text-ink-muted">
-                    Selected option: {activeFunding.name} ({activeFunding.provider}) · {activeFunding.typeLabel}
-                    {" · "}Eligibility: {activeFunding.status === "eligible" ? "Meets numeric criteria" : activeFunding.status === "requires_info" ? "More information required" : "Does not meet criteria"}
+                    {t("funding.m3", { name: activeFunding.name, provider: activeFunding.provider, typeLabel: activeFunding.typeLabel })}
+                    {" · "}Eligibility: {activeFunding.status === "eligible" ? t("funding.42") : activeFunding.status === "requires_info" ? t("funding.43") : t("funding.44")}
                   </div>
                   <div className="font-mono font-bold text-brand">
-                    Funding gap in this statement: {evaluation ? amount(evaluation.requestedAmount) : "No data"}
+                    Funding gap in this statement: {evaluation ? amount(evaluation.requestedAmount) : t("funding.1")}
                     {" · "}Funding range: {amount(activeFunding.minAmount)}–{amount(activeFunding.maxAmount)}
                   </div>
                 </div>
 
                 <div className="p-3 border border-slate-200 rounded-xl space-y-1 text-ink-muted">
                   <span className="font-bold text-ink block">
-                    {canApply ? "Information to be shared with the funder:" : "Application status in this system:"}
+                    {canApply ? t("funding.45") : t("funding.46")}
                   </span>
                   <p>
                     {canApply
-                      ? "The analyzed statement and ranking will be sent to the funder for review."
-                      : `No application, signature, or documents have been submitted · /capabilities reason: ${applyBlockedReason}`}
+                      ? t("funding.47")
+                      : t("funding.tpl.notSubmitted", { reason: applyBlockedReason })}
                   </p>
-                  <p>Documents requested by funder: {activeFunding.requiredDocs.length} (see details below)</p>
+                  <p>{t("funding.m4", { requiredDocs: activeFunding.requiredDocs.length })}</p>
                   <p>
                     {activeFunding.missing?.length
-                      ? `Missing information for this criterion: ${activeFunding.missing.join(", ")}`
-                      : "No information is missing for this option's numeric criteria."}
+                      ? t("funding.tpl.missingInfo", { list: activeFunding.missing.join(", ") })
+                      : t("funding.48")}
                   </p>
                 </div>
               </div>
@@ -409,7 +411,7 @@ export const FundingPage: React.FC = () => {
                   onClick={() => setIsApplying(false)}
                   className="px-4 py-2 border border-slate-200 rounded-btn text-xs text-ink-muted hover:bg-slate-50"
                 >
-                  {canApply ? "Cancel" : "Close"}
+                  {canApply ? t("funding.49") : t("funding.50")}
                 </button>
                 <button
                   type="button"
@@ -418,7 +420,7 @@ export const FundingPage: React.FC = () => {
                   title={canApply ? undefined : applyBlockedReason}
                   className="px-5 py-2 bg-brand text-white rounded-btn text-xs font-bold hover:bg-brand-dark transition-all shadow-sm"
                 >
-                  {canApply ? "Confirm and submit application" : "Applications are not available yet"}
+                  {canApply ? t("funding.51") : t("funding.52")}
                 </button>
               </div>
             </div>

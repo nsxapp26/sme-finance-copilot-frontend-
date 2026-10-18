@@ -192,7 +192,7 @@ export const ImportPage: React.FC = () => {
   return (
     <div className="p-4 lg:p-8 max-w-7xl mx-auto space-y-6 text-ink animate-fade-in">
       {/* Header Bar */}
-      <div className="flex flex-wrap items-center justify-between gap-4 border-b border-borderLine pb-4">
+      <div className="page-header flex flex-wrap items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2">
             <h1 className="text-xl font-display font-bold text-ink">

@@ -264,7 +264,7 @@ export const SalesPreviewForm: React.FC = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2">
             {result.data.channels.map((channel, index) => (
-              <div key={`${index}-${channel.channel}`} style={stagger(index + 2)} className="animate-rise rounded-xl border border-borderLine p-3 text-xs space-y-1 transition-shadow hover:shadow-soft-sm">
+              <div key={`${index}-${channel.channel}`} style={stagger(index + 2)} data-tilt className="animate-rise rounded-xl border border-borderLine bg-white p-3 text-xs space-y-1">
                 <div className="font-bold text-ink">{channel.channel}</div>
                 <div className="flex justify-between"><span className="text-ink-muted">{t("salesForm.grossShort")}</span><span className="font-mono">{baht(channel.grossSales)}</span></div>
                 <div className="flex justify-between"><span className="text-ink-muted">{t("salesForm.commissionShort")}</span><span className="font-mono">{baht(channel.commissionFee)}</span></div>

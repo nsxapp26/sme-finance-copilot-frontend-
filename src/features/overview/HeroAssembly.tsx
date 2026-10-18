@@ -87,19 +87,15 @@ export const HeroAssembly: React.FC = () => {
   return (
     <div className="relative bg-navy-deep text-white rounded-card p-4 sm:p-6 md:p-8 overflow-hidden shadow-soft-lg mb-8 border border-navy-border">
       {/* Background Soft Aurora Canvas / Gradient */}
-      <div className="absolute inset-0 pointer-events-none opacity-40">
-        <div className="absolute -top-24 -left-24 w-96 h-96 rounded-full bg-brand/30 blur-3xl" />
-        <div className="absolute -bottom-24 -right-24 w-96 h-96 rounded-full bg-resource/30 blur-3xl" />
-      </div>
+      <HeroBackdrop animate={!isReducedMotion} />
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column: Headline, Description & CTAs */}
         <div className="lg:col-span-5 space-y-4 text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-white leading-tight">
-            {t("hero.headline1")} <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-glow via-white to-resource">
-              {t("hero.headline2")}
-            </span>
+          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-white leading-tight [perspective:600px]">
+            <PopWords text={t("hero.headline1")} />
+            <br />
+            <PopWords text={t("hero.headline2")} startAt={4} shine />
           </h1>
 
           <p className="text-xs md:text-sm text-slate-300 leading-relaxed max-w-md">
@@ -178,7 +174,7 @@ export const HeroAssembly: React.FC = () => {
 
         {/* แท็บเล็ต/คอม: diagram แบบ grid (ของเดิมใช้ตำแหน่ง absolute ทำให้การ์ดทับกัน) */}
         <div className="lg:col-span-7 hidden sm:block" aria-label={t("hero.diagramLabel")}>
-          <div className="grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1.15fr)_28px_minmax(0,1fr)_28px_minmax(0,1fr)] items-center">
+          <div className={`grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1.15fr)_28px_minmax(0,1fr)_28px_minmax(0,1fr)] items-center ${isReducedMotion ? "" : "hero-float"}`}>
             <FlowCard node={nodes.buyer} />
             <FlowLink active={!isReducedMotion} />
             <FlowCard node={nodes.shops} big />
@@ -218,7 +214,7 @@ type FlowNode = {
 
 // การ์ด 1 ช่องใน diagram (row = แบบแนวนอนสำหรับมือถือ)
 const FlowCard: React.FC<{ node: FlowNode; row?: boolean; big?: boolean }> = ({ node, row, big }) => (
-  <div className={`rounded-xl border transition-all duration-300 ${
+  <div {...(row ? {} : { "data-tilt": "" })} className={`rounded-xl border transition-all duration-300 ${
     node.alert ? "bg-amber-950/40 border-attention ring-2 ring-attention/70" : big ? "bg-navy-surface border-brand ring-2 ring-brand/40 shadow-glow-primary" : "bg-navy-surface border-navy-border"
   } ${row ? "flex items-center gap-3 p-3" : "p-3 text-center"}`}>
     <div className={`w-8 h-8 shrink-0 rounded-lg flex items-center justify-center ${node.iconClass} ${row ? "" : "mx-auto mb-1.5"}`}>{node.icon}</div>
@@ -313,3 +309,39 @@ const MobileFlow: React.FC<{ nodes: FlowNode[]; animate: boolean; onOpen: (page:
     </div>
   );
 };
+
+// พื้นหลัง Hero: แสงออโรร่า 4 สี + พื้นตาราง 3 มิติ + อนุภาคลอยขึ้น (ตกแต่งอย่างเดียว ไม่มีข้อมูล)
+const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
+  left: `${(i * 37) % 100}%`,
+  delay: `${(i * 0.7) % 6}s`,
+  duration: `${6 + (i % 5)}s`,
+  size: 3 + (i % 3) * 2,
+}));
+
+const HeroBackdrop: React.FC<{ animate: boolean }> = ({ animate }) => (
+  <div aria-hidden="true" className="absolute inset-0 pointer-events-none overflow-hidden">
+    <div className="hero-aurora absolute inset-0">
+      <span className="w-[28rem] h-[28rem] -top-32 -left-24 bg-brand" />
+      <span className="w-[22rem] h-[22rem] top-10 right-[-6rem] bg-resource" style={{ animationDelay: "-4s" }} />
+      <span className="w-[18rem] h-[18rem] bottom-[-6rem] left-1/3 bg-fuchsia-500" style={{ animationDelay: "-8s" }} />
+      <span className="w-[14rem] h-[14rem] top-1/3 left-1/2 bg-amber-400/70" style={{ animationDelay: "-2s" }} />
+    </div>
+    <div className="hero-grid" />
+    {animate && PARTICLES.map((p, i) => (
+      <span key={i} className="hero-particle"
+        style={{ left: p.left, width: p.size, height: p.size, animationDelay: p.delay, animationDuration: p.duration }} />
+    ))}
+  </div>
+);
+
+// หัวข้อเด้งขึ้นทีละคำ (ภาษาไทยแบ่งตามช่องว่าง)
+const PopWords: React.FC<{ text: string; startAt?: number; shine?: boolean }> = ({ text, startAt = 0, shine }) => (
+  <>
+    {text.split(" ").map((word, i) => (
+      <React.Fragment key={`${word}-${i}`}>
+        <span className={`word-pop ${shine ? "text-shine" : ""}`} style={{ animationDelay: `${(startAt + i) * 90}ms` }}>{word}</span>
+        {" "}
+      </React.Fragment>
+    ))}
+  </>
+);

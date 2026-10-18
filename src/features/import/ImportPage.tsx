@@ -9,6 +9,7 @@ import { missingDataLabel } from "@/api/dataAvailability";
 import { StatementPreview } from "./StatementPreview";
 import { useAnalysisContext } from "@/hooks/useEnvelope";
 import { TranslationKey, useT } from "@/i18n";
+import { fireConfetti } from "@/components/fx/confetti";
 import { Sparkles, LayoutDashboard } from "lucide-react";
 import {
   UploadCloud,
@@ -24,7 +25,7 @@ import {
 } from "lucide-react";
 
 export const ImportPage: React.FC = () => {
-  const { setCurrentPage, addToast, setAIPanelOpen } = useAppStore();
+  const { setCurrentPage, addToast, setAIPanelOpen, isReducedMotion } = useAppStore();
   const { accepted, stale } = useAnalysisContext();
   const t = useT();
   const [activeTab, setActiveTab] = useState<"upload" | "manual" | "saved">("manual");
@@ -176,6 +177,7 @@ export const ImportPage: React.FC = () => {
         duration: gap ? 9000 : undefined,
       });
       setCurrentPage("overview");
+      fireConfetti(isReducedMotion);
     } catch (error) {
       addToast({ type: "error", title: t("import.validation"), message: error instanceof Error ? error.message : t("import.calcFailed"), duration: 10000 });
     } finally {

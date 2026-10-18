@@ -130,6 +130,7 @@ export const OverviewPage: React.FC = () => {
           {/* 1. Revenue */}
           <div
             onClick={() => setSelectedMetric("revenue")}
+            data-tilt
             className={`p-4 rounded-card border transition-all cursor-pointer bg-white ${
               selectedMetric === "revenue"
                 ? "border-brand ring-2 ring-brand/20 shadow-soft-md"
@@ -152,6 +153,7 @@ export const OverviewPage: React.FC = () => {
           {/* 2. Expense */}
           <div
             onClick={() => setSelectedMetric("expense")}
+            data-tilt
             className={`p-4 rounded-card border transition-all cursor-pointer bg-white ${
               selectedMetric === "expense"
                 ? "border-brand ring-2 ring-brand/20 shadow-soft-md"
@@ -175,6 +177,7 @@ export const OverviewPage: React.FC = () => {
           <div
             id="stat-net-profit"
             onClick={() => setSelectedMetric("profit")}
+            data-tilt
             className={`p-4 rounded-card border transition-all cursor-pointer bg-white relative ${
               activeEvidenceTargetId === "stat-net-profit"
                 ? "border-brand ring-4 ring-brand/40 shadow-glow-primary animate-pulse"
@@ -199,6 +202,7 @@ export const OverviewPage: React.FC = () => {
           <div
             id="stat-cash-balance"
             onClick={() => setSelectedMetric("cash")}
+            data-tilt
             className={`p-4 rounded-card border transition-all cursor-pointer bg-white relative ${
               activeEvidenceTargetId === "stat-cash-balance"
                 ? "border-danger ring-4 ring-danger/40 shadow-glow-danger animate-pulse"
@@ -223,6 +227,7 @@ export const OverviewPage: React.FC = () => {
           {/* 5. Usable Cash after Reserve */}
           <div
             id="stat-reserve-line"
+            data-tilt
             className="p-4 rounded-card border border-danger/30 bg-red-50/40 relative"
           >
             <div className="flex items-center justify-between text-xs text-danger mb-1">

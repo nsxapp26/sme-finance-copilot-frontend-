@@ -228,17 +228,17 @@ export const CashflowPreviewForm: React.FC<Props> = ({ defaultAsOf, defaultOpeni
           <SimulatedNotice kind={result.kind} persisted={result.persisted} source={result.source} asOf={result.asOf} outdated={changedAfterRun} />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-            <div className="animate-rise rounded-xl border border-borderLine p-3" style={stagger(1)}>
+            <div className="animate-rise rounded-xl border border-borderLine p-3" style={stagger(1)} data-tilt>
               <span className="text-[10px] font-bold uppercase text-ink-muted">{t("cashForm.lowest")}</span>
               <div className="mt-1 font-mono text-base font-bold">{baht(lowest?.projectedCash)}</div>
               <span className="text-[11px] text-ink-muted">{lowest ? t("cashForm.onDate", { date: lowest.date }) : t("cashForm.noDays")}</span>
             </div>
-            <div className={`animate-rise rounded-xl border p-3 ${firstBelowReserve ? "border-danger/40 bg-red-50" : "border-emerald-200 bg-emerald-50"}`} style={stagger(2)}>
+            <div className={`animate-rise rounded-xl border p-3 ${firstBelowReserve ? "border-danger/40 bg-red-50" : "border-emerald-200 bg-emerald-50"}`} style={stagger(2)} data-tilt>
               <span className="text-[10px] font-bold uppercase text-ink-muted">{t("cashForm.reserveCheck")}</span>
               <div className="mt-1 font-semibold">{firstBelowReserve ? t("cashForm.belowFrom", { date: firstBelowReserve.date }) : t("cashForm.staysAbove")}</div>
               <span className="text-[11px] text-ink-muted">{t("cashForm.daysBelow", { below: days.filter((day) => day.isDeficit).length, total: days.length })}</span>
             </div>
-            <div className="animate-rise rounded-xl border border-borderLine p-3" style={stagger(3)}>
+            <div className="animate-rise rounded-xl border border-borderLine p-3" style={stagger(3)} data-tilt>
               <span className="text-[10px] font-bold uppercase text-ink-muted">{t("cashForm.eventsUsed")}</span>
               <div className="mt-1 font-semibold">{t("cashForm.enteredRows", { n: days.reduce((count, day) => count + day.events.length, 0) })}</div>
               <span className="text-[11px] text-ink-muted">{t("cashForm.noOther")}</span>

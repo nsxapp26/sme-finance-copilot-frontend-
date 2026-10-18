@@ -35,6 +35,7 @@ import {
 } from "lucide-react";
 import type { NavPage } from "@/store/useAppStore";
 import { TranslationKey, useT } from "@/i18n";
+import { useTilt } from "@/components/fx/useTilt";
 
 const mobileTabs: { id: NavPage; label: TranslationKey; icon: React.ReactNode }[] = [
   { id: "overview", label: "tab.overview", icon: <LayoutDashboard className="w-5 h-5 mb-0.5" /> },
@@ -48,6 +49,8 @@ export const App: React.FC = () => {
 
   const t = useT();
   const language = useAppStore((st) => st.language);
+  // การ์ดที่มี data-tilt จะเอียงตามเมาส์ (ปิดเมื่อเปิดลดการเคลื่อนไหว)
+  useTilt(isReducedMotion);
   // ให้ <html lang> ตรงกับภาษาที่เลือก (screen reader / ฟอนต์ไทย-จีน จะได้ถูก)
   React.useEffect(() => { document.documentElement.lang = language; }, [language]);
 

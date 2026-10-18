@@ -144,7 +144,27 @@ function requireBackend() {
   }
 }
 
-async function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+// ข้อมูล GET เก็บไว้ในหน่วยความจำ 30 วินาที กลับมาหน้าเดิมจะได้ไม่ต้องรอ API ใหม่
+// (API บน Vercel + Neon ใช้เวลาหลายวินาทีต่อครั้ง) และถ้าหลายหน้าขอ path เดียวกันพร้อมกันก็ยิงครั้งเดียว
+// เก็บเฉพาะคำตอบที่สำเร็จ และล้างทิ้งทุกครั้งที่มีการส่งข้อมูล (POST) จะได้ไม่เห็นข้อมูลเก่าหลังบันทึก
+const GET_CACHE_MS = 30_000;
+const getCache = new Map<string, { at: number; promise: Promise<unknown> }>();
+
+function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  const isGet = !init.method || init.method === "GET";
+  if (!isGet) {
+    getCache.clear();
+    return fetchJson<T>(path, init);
+  }
+  const hit = getCache.get(path);
+  if (hit && Date.now() - hit.at < GET_CACHE_MS) return hit.promise as Promise<T>;
+  const promise = fetchJson<T>(path, init);
+  getCache.set(path, { at: Date.now(), promise });
+  promise.catch(() => { if (getCache.get(path)?.promise === promise) getCache.delete(path); });
+  return promise;
+}
+
+async function fetchJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 20000);
   try {
@@ -242,6 +262,7 @@ export const apiClient = {
   authToken: () => authToken,
   setAuthToken(token: string | null) {
     authToken = token && token.trim() ? token : null;
+    getCache.clear(); // คนละสิทธิ์อาจเห็นข้อมูลไม่เหมือนกัน
     try {
       if (authToken) sessionStorage.setItem(TOKEN_KEY, authToken);
       else sessionStorage.removeItem(TOKEN_KEY);

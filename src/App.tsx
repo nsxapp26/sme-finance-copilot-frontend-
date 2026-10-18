@@ -6,21 +6,57 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { MobileDrawer } from "@/components/ui/MobileDrawer";
 
 // Keep the first download small; Vite fetches each workspace only when opened.
-const OverviewPage = React.lazy(() => import("@/features/overview/OverviewPage").then((page) => ({ default: page.OverviewPage })));
-const ImportPage = React.lazy(() => import("@/features/import/ImportPage").then((page) => ({ default: page.ImportPage })));
-const CashflowPage = React.lazy(() => import("@/features/cashflow/CashflowPage").then((page) => ({ default: page.CashflowPage })));
-const HealthPage = React.lazy(() => import("@/features/health/HealthPage").then((page) => ({ default: page.HealthPage })));
-const CostPage = React.lazy(() => import("@/features/cost/CostPage").then((page) => ({ default: page.CostPage })));
-const SalesPage = React.lazy(() => import("@/features/sales/SalesPage").then((page) => ({ default: page.SalesPage })));
-const FundingPage = React.lazy(() => import("@/features/funding/FundingPage").then((page) => ({ default: page.FundingPage })));
-const SwarmPage = React.lazy(() => import("@/features/swarm/SwarmPage").then((page) => ({ default: page.SwarmPage })));
-const ShopFinancePage = React.lazy(() => import("@/features/shop-finance/ShopFinancePage").then((page) => ({ default: page.ShopFinancePage })));
-const UnlockPage = React.lazy(() => import("@/features/unlock/UnlockPage").then((page) => ({ default: page.UnlockPage })));
-const FunderPage = React.lazy(() => import("@/features/funder/FunderPage").then((page) => ({ default: page.FunderPage })));
-const SimulatorPage = React.lazy(() => import("@/features/simulator/SimulatorPage").then((page) => ({ default: page.SimulatorPage })));
-const ProjectsPage = React.lazy(() => import("@/features/projects/ProjectsPage").then((page) => ({ default: page.ProjectsPage })));
-const AIPanel = React.lazy(() => import("@/features/ai-panel/AIPanel").then((panel) => ({ default: panel.AIPanel })));
+// เก็บตัวโหลดไว้ในตัวแปร จะได้เอาไปโหลดล่วงหน้าตอนเครื่องว่างได้ (ดู prefetchPages ด้านล่าง)
+const loaders = {
+  overview: () => import("@/features/overview/OverviewPage"),
+  import: () => import("@/features/import/ImportPage"),
+  cashflow: () => import("@/features/cashflow/CashflowPage"),
+  health: () => import("@/features/health/HealthPage"),
+  cost: () => import("@/features/cost/CostPage"),
+  sales: () => import("@/features/sales/SalesPage"),
+  funding: () => import("@/features/funding/FundingPage"),
+  swarm: () => import("@/features/swarm/SwarmPage"),
+  shopFinance: () => import("@/features/shop-finance/ShopFinancePage"),
+  unlock: () => import("@/features/unlock/UnlockPage"),
+  funder: () => import("@/features/funder/FunderPage"),
+  simulator: () => import("@/features/simulator/SimulatorPage"),
+  projects: () => import("@/features/projects/ProjectsPage"),
+  aiPanel: () => import("@/features/ai-panel/AIPanel"),
+};
+
+const OverviewPage = React.lazy(() => loaders.overview().then((page) => ({ default: page.OverviewPage })));
+const ImportPage = React.lazy(() => loaders.import().then((page) => ({ default: page.ImportPage })));
+const CashflowPage = React.lazy(() => loaders.cashflow().then((page) => ({ default: page.CashflowPage })));
+const HealthPage = React.lazy(() => loaders.health().then((page) => ({ default: page.HealthPage })));
+const CostPage = React.lazy(() => loaders.cost().then((page) => ({ default: page.CostPage })));
+const SalesPage = React.lazy(() => loaders.sales().then((page) => ({ default: page.SalesPage })));
+const FundingPage = React.lazy(() => loaders.funding().then((page) => ({ default: page.FundingPage })));
+const SwarmPage = React.lazy(() => loaders.swarm().then((page) => ({ default: page.SwarmPage })));
+const ShopFinancePage = React.lazy(() => loaders.shopFinance().then((page) => ({ default: page.ShopFinancePage })));
+const UnlockPage = React.lazy(() => loaders.unlock().then((page) => ({ default: page.UnlockPage })));
+const FunderPage = React.lazy(() => loaders.funder().then((page) => ({ default: page.FunderPage })));
+const SimulatorPage = React.lazy(() => loaders.simulator().then((page) => ({ default: page.SimulatorPage })));
+const ProjectsPage = React.lazy(() => loaders.projects().then((page) => ({ default: page.ProjectsPage })));
+const AIPanel = React.lazy(() => loaders.aiPanel().then((panel) => ({ default: panel.AIPanel })));
 const StoryModeModal = React.lazy(() => import("@/features/reports/StoryModeModal").then((modal) => ({ default: modal.StoryModeModal })));
+
+// หลังหน้าแรกขึ้นแล้ว ค่อย ๆ โหลดไฟล์ของหน้าอื่นไว้ก่อนตอนเครื่องว่าง
+// กดเมนูทีหลังจะได้เปิดทันที ไม่ต้องรอดาวน์โหลด (ถ้าเปิดประหยัดเน็ตไว้จะไม่โหลด)
+function prefetchPages() {
+  const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
+  if (connection?.saveData) return;
+  const queue = Object.values(loaders);
+  const idle = (cb: () => void) => {
+    if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(cb, { timeout: 3000 });
+    else setTimeout(cb, 300); // Safari ไม่มี requestIdleCallback
+  };
+  const next = () => {
+    const load = queue.shift();
+    if (!load) return;
+    load().catch(() => undefined).finally(() => idle(next));
+  };
+  idle(next);
+}
 
 // Mobile Icons
 import {
@@ -53,6 +89,7 @@ export const App: React.FC = () => {
   useTilt(isReducedMotion);
   // ให้ <html lang> ตรงกับภาษาที่เลือก (screen reader / ฟอนต์ไทย-จีน จะได้ถูก)
   React.useEffect(() => { document.documentElement.lang = language; }, [language]);
+  React.useEffect(() => { const timer = window.setTimeout(prefetchPages, 1500); return () => window.clearTimeout(timer); }, []);
 
   const tabIndex = mobileTabs.findIndex((tab) => tab.id === currentPage);
   const activeTabIndex = tabIndex === -1 ? mobileTabs.length : tabIndex;

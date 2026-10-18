@@ -146,21 +146,28 @@ function requireBackend() {
 
 // ข้อมูล GET เก็บไว้ในหน่วยความจำ 30 วินาที กลับมาหน้าเดิมจะได้ไม่ต้องรอ API ใหม่
 // (API บน Vercel + Neon ใช้เวลาหลายวินาทีต่อครั้ง) และถ้าหลายหน้าขอ path เดียวกันพร้อมกันก็ยิงครั้งเดียว
-// เก็บเฉพาะคำตอบที่สำเร็จ และล้างทิ้งทุกครั้งที่มีการส่งข้อมูล (POST) จะได้ไม่เห็นข้อมูลเก่าหลังบันทึก
+// เก็บเฉพาะคำตอบที่สำเร็จ และล้างทิ้งทุกครั้งที่มี POST ที่อาจบันทึกข้อมูล จะได้ไม่เห็นข้อมูลเก่าหลังบันทึก
 const GET_CACHE_MS = 30_000;
 const getCache = new Map<string, { at: number; promise: Promise<unknown> }>();
 
+// POST พวกนี้แค่คำนวณ/พรีวิว ไม่ได้เขียนลงฐานข้อมูล (ส่ง persist: false) จึงไม่ต้องล้าง cache
+// และถ้าส่งข้อมูลชุดเดิมซ้ำภายใน 30 วินาที ก็ใช้ผลเดิมได้ เช่นกลับไปหน้า SWARM อีกรอบ
+const READ_ONLY_POSTS = new Set(["/swarm", "/cashflow/preview", "/sales/preview", "/forecast/preview", "/upload/preview"]);
+
 function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const isGet = !init.method || init.method === "GET";
-  if (!isGet) {
+  const readOnlyPost = !isGet && READ_ONLY_POSTS.has(path);
+  if (!isGet && !readOnlyPost) {
     getCache.clear();
     return fetchJson<T>(path, init);
   }
-  const hit = getCache.get(path);
+  if (readOnlyPost && typeof init.body !== "string") return fetchJson<T>(path, init); // เช่นไฟล์ที่อัปโหลด
+  const key = isGet ? path : `${path} ${init.body}`;
+  const hit = getCache.get(key);
   if (hit && Date.now() - hit.at < GET_CACHE_MS) return hit.promise as Promise<T>;
   const promise = fetchJson<T>(path, init);
-  getCache.set(path, { at: Date.now(), promise });
-  promise.catch(() => { if (getCache.get(path)?.promise === promise) getCache.delete(path); });
+  getCache.set(key, { at: Date.now(), promise });
+  promise.catch(() => { if (getCache.get(key)?.promise === promise) getCache.delete(key); });
   return promise;
 }
 

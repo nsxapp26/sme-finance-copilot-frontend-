@@ -107,7 +107,7 @@ export const ShopFinancePage: React.FC = () => {
           </div>
 
           {/* Shop Switcher Pills */}
-          <div className="flex items-center gap-1.5 overflow-x-auto pb-1 max-w-full">
+          <div className="flex flex-wrap items-center gap-1.5 pb-1 max-w-full">
             {shops.map((s) => (
               <button
                 key={s.id}

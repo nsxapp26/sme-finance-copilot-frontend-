@@ -1203,6 +1203,7 @@ export const en = {
   "unlock.w1": "A purchase quote for this shop (investment_cash_schedule) is required to calculate total investment.",
   "unlock.r.nothing": "(nothing is reserved or changed in the live system)",
   "unlock.r.count": "{n} resources are available for sharing · Each service rate is shown on its card below,",
+  "unlock.r.all": "All ({n})",
   "unlock.tpl.preview": "'{title}' · The engine will preview a new order allocation (persist=false)",
   "unlock.tpl.unchanged": "Live resource status remains unchanged and nothing is reserved ({reason})",
   "unlock.tpl.capacity": "Allocated capacity: {now} (was {was})",

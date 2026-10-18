@@ -1158,6 +1158,7 @@ export const th: Dictionary = {
   "unlock.w1": "ต้องมีใบเสนอราคาซื้อของร้านนี้ (investment_cash_schedule) จึงจะคำนวณเงินลงทุนรวมได้",
   "unlock.r.nothing": "(ไม่มีการจองหรือเปลี่ยนแปลงอะไรในระบบจริง)",
   "unlock.r.count": "มีทรัพยากรเปิดให้แชร์ {n} รายการ · อัตราค่าบริการแต่ละรายการแสดงอยู่บนการ์ดด้านล่าง",
+  "unlock.r.all": "ทั้งหมด ({n})",
   "unlock.tpl.preview": "'{title}' · เอนจินจะแสดงตัวอย่างการจัดสรรออร์เดอร์ใหม่ (persist=false)",
   "unlock.tpl.unchanged": "สถานะทรัพยากรจริงไม่เปลี่ยน และไม่มีการจอง ({reason})",
   "unlock.tpl.capacity": "กำลังการผลิตที่จัดสรร: {now} (เดิม {was})",

@@ -151,7 +151,7 @@ export const ChaosPlayback: React.FC<ChaosPlaybackProps> = ({
       </div>
 
       {/* 4-Phase Step Progress Indicator (Part E4 S6) */}
-      <div className="grid grid-cols-4 gap-2 text-center text-xs">
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs">
         {[
           { num: 1, label: t("chaos.7"), desc: t("chaos.8") },
           { num: 2, label: t("chaos.9"), desc: t("chaos.10") },

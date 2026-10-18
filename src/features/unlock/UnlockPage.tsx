@@ -276,9 +276,9 @@ export const UnlockPage: React.FC = () => {
         </div>
 
         {/* Category Filter Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <div className="flex flex-wrap items-center gap-2 pb-1 text-xs">
           {[
-            { id: "all", label: `All (${allResources.length})` },
+            { id: "all", label: t("unlock.r.all", { n: allResources.length }) },
             { id: "kitchen", label: t("unlock.22") },
             { id: "truck", label: t("unlock.23") },
             { id: "machine", label: t("unlock.24") },

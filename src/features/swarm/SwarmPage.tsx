@@ -222,13 +222,14 @@ export const SwarmPage: React.FC = () => {
           </div>
 
           {/* Action CTAs */}
-          <div className="flex items-center gap-2.5">
+          {/* มือถือ: ปุ่มสลับมุมมองเต็มแถว แล้วปุ่มสั่งงานสองปุ่มเรียงคู่กันข้างล่าง (กันล้นขอบขวา) */}
+          <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             {/* View Mode Toggle */}
-            <div className="bg-[#101b3b] border border-slate-700/70 p-1 rounded-xl flex items-center text-xs">
+            <div className="col-span-2 bg-[#101b3b] border border-slate-700/70 p-1 rounded-xl flex items-center text-xs">
               <button
                 type="button"
                 onClick={() => setViewMode("cockpit")}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`flex-1 sm:flex-none justify-center whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
                   viewMode === "cockpit"
                     ? "bg-brand text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-white"
@@ -240,7 +241,7 @@ export const SwarmPage: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setViewMode("roster")}
-                className={`px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
+                className={`flex-1 sm:flex-none justify-center whitespace-nowrap px-3 py-1.5 rounded-lg font-medium transition-all flex items-center gap-1.5 ${
                   viewMode === "roster"
                     ? "bg-brand text-white shadow-sm font-semibold"
                     : "text-slate-400 hover:text-white"
@@ -256,7 +257,7 @@ export const SwarmPage: React.FC = () => {
               type="button"
               onClick={handleTriggerSwarmAssembly}
               disabled={isAssembling}
-              className="px-4 py-2 bg-gradient-to-r from-brand via-purple-500 to-teal-400 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
+              className="px-4 py-2 bg-gradient-to-r from-brand via-purple-500 to-teal-400 hover:opacity-95 text-white rounded-xl text-xs font-bold flex items-center justify-center text-center gap-2 shadow-glow-primary hover:scale-[1.02] active:scale-[0.98] transition-all cursor-pointer"
             >
               <Sparkles className={`w-4 h-4 ${scanPulse ? "animate-spin" : ""}`} />
               <span>{t("swarm.13")}</span>
@@ -266,7 +267,7 @@ export const SwarmPage: React.FC = () => {
             <button
               type="button"
               onClick={() => setCurrentPage("simulator")}
-              className="px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer"
+              className="px-3.5 py-2 bg-amber-500/15 hover:bg-amber-500/25 border border-amber-500/40 text-amber-300 rounded-xl text-xs font-semibold flex items-center justify-center text-center gap-1.5 transition-all cursor-pointer"
             >
               <AlertTriangle className="w-3.5 h-3.5 text-amber-400" />
               <span>{t("swarm.14")}</span>
@@ -276,13 +277,14 @@ export const SwarmPage: React.FC = () => {
 
         {/* S3 Project Stuck Spotlight Control Bar */}
         <div className="relative z-10 mt-4 p-3 bg-[#0d1633]/90 backdrop-blur-md rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-lg">
-          <div className="flex items-center gap-2.5">
+          {/* มือถือ: หัวข้ออยู่บรรทัดบน ปุ่มกรองขึ้นบรรทัดใหม่ได้ ไม่ล้นจอ */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4 text-attention" />
               <span>{t("swarm.15")}</span>
             </span>
 
-            <div className="flex items-center gap-1 bg-[#152042] p-1 rounded-xl text-xs border border-slate-700/60">
+            <div className="flex flex-wrap items-center gap-1 bg-[#152042] p-1 rounded-xl text-xs border border-slate-700/60 [&>button]:whitespace-nowrap">
               <button
                 type="button"
                 onClick={() => setStuckFilter("all")}
@@ -336,7 +338,7 @@ export const SwarmPage: React.FC = () => {
             </div>
           </div>
 
-          <div className="text-xs text-slate-400 flex items-center gap-2">
+          <div className="text-xs text-slate-400 flex flex-wrap items-center gap-2">
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
             <span>{t("swarm.18")} <strong className="text-white font-mono">{proposal.version}</strong></span>
             <span className="text-slate-600">|</span>

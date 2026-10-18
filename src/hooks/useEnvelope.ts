@@ -20,6 +20,7 @@ import {
   isAcceptedStale,
   subscribeAnalysis,
 } from "@/api/activeAnalysis";
+import { useAppStore } from "@/store/useAppStore";
 
 /** Re-renders whenever the accepted analysis, identity or draft revision moves. */
 export function useAnalysisEpoch(): number {
@@ -53,6 +54,8 @@ export type EnvelopeState<T> = {
  */
 export function useEnvelope<T>(load: () => Promise<Envelope<T>>, deps: unknown[] = []): EnvelopeState<T> {
   const epoch = useAnalysisEpoch();
+  // เปลี่ยนภาษาแล้วโหลดใหม่ ข้อมูลจากฐานข้อมูลจะได้แปลตาม (ข้อมูลอยู่ใน cache จึงไม่ต้องรอ API)
+  const language = useAppStore((state) => state.language);
   const [envelope, setEnvelope] = useState<Envelope<T> | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -85,7 +88,7 @@ export function useEnvelope<T>(load: () => Promise<Envelope<T>>, deps: unknown[]
       ++sequence.current;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [epoch, attempt, ...deps]);
+  }, [epoch, attempt, language, ...deps]);
 
   const reload = useCallback(() => setAttempt((value) => value + 1), []);
   return { envelope, loading, error, reload };

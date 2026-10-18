@@ -23,6 +23,7 @@ export const SimulatorPage: React.FC = () => {
   const {
     resetSimulation,
     addToast,
+    language,
   } = useAppStore();
 
   const [chaosEnvelope, setChaosEnvelope] = useState<Envelope<ChaosScenario[]> | null>(null);
@@ -90,6 +91,13 @@ export const SimulatorPage: React.FC = () => {
       }).catch((err) => { setError(err.message); setLoading(false); });
   };
   useEffect(loadData, []);
+  // สลับภาษาแล้วดึงสถานการณ์ Chaos ใหม่อย่างเดียว (ค่าที่กรอกจำลองไว้ไม่หาย)
+  const firstLanguage = useRef(language);
+  useEffect(() => {
+    if (language === firstLanguage.current) return;
+    firstLanguage.current = language;
+    apiClient.getChaosScenarios().then(setChaosEnvelope).catch(() => undefined);
+  }, [language]);
   const scenario: OrderScenario = {
     unit_price: simUnitPrice,
     cost_per_unit: simCostPerUnit === "" ? null : simCostPerUnit,

@@ -1,3 +1,5 @@
+import { useAppStore } from "@/store/useAppStore";
+import { translateData } from "./dataTranslations";
 import {
   Envelope,
   AnalysisContext,
@@ -154,7 +156,13 @@ const getCache = new Map<string, { at: number; promise: Promise<unknown> }>();
 // และถ้าส่งข้อมูลชุดเดิมซ้ำภายใน 30 วินาที ก็ใช้ผลเดิมได้ เช่นกลับไปหน้า SWARM อีกรอบ
 const READ_ONLY_POSTS = new Set(["/swarm", "/cashflow/preview", "/sales/preview", "/forecast/preview", "/upload/preview"]);
 
+// ตอนเลือก EN ข้อมูลภาษาไทยจากฐานข้อมูลจะถูกแปลตามรายการใน dataTranslations.ts
+// แปลตอนส่งคืน ไม่ใช่ตอนเก็บ cache จึงสลับภาษาไปมาได้โดยไม่ต้องโหลดใหม่
 function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
+  return loadJson<T>(path, init).then((data) => (useAppStore.getState().language === "en" ? translateData(data) : data));
+}
+
+function loadJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   const isGet = !init.method || init.method === "GET";
   const readOnlyPost = !isGet && READ_ONLY_POSTS.has(path);
   if (!isGet && !readOnlyPost) {

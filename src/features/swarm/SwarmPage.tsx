@@ -38,6 +38,7 @@ export const SwarmPage: React.FC = () => {
     setAIPanelOpen,
     isReducedMotion,
     addToast,
+    language,
   } = useAppStore();
 
   const [order, setOrder] = useState<SwarmOrder | null>(null);
@@ -127,7 +128,8 @@ export const SwarmPage: React.FC = () => {
       }).catch((err) => { if (sequence.current === id) setError(err.message); })
       .finally(() => { if (sequence.current === id) setLoading(false); });
   };
-  useEffect(loadData, []);
+  // โหลดใหม่ตอนสลับภาษาด้วย ชื่อทรัพยากรและข้อความจากฐานข้อมูลจะได้แปลตาม
+  useEffect(loadData, [language]);
   const assemble = async (next: OrderContext, message: string) => {
     if (busy.current) return; // One scan at a time; a repeat click is ignored.
     busy.current = true; setIsAssembling(true); setScanPulse(true);

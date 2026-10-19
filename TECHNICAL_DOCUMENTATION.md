@@ -1,7 +1,7 @@
 # SME Finance Copilot — Technical Documentation
 
 **Prepared:** October 19, 2026  
-**Scope:** System architecture, core algorithms, frontend design, security design, deployment, and verification, based on the repository code at commit `3d45012`.  
+**Scope:** System architecture, core algorithms, frontend design, deployment, security design, a security assessment of the deployed demo, and verification, based on the repository code at commit `c16e75d` (identical code to the earlier `3d45012`; only the commit author was changed).  
 **Limitations:** This document describes the system as built. It is not a production security certification, a credit model validation, or a load-test report.
 
 ---
@@ -262,7 +262,7 @@ The simulator compares **Plan A** (stored order context) with **Plan B** (user-c
 
 - Database credentials, the signing secret, and provider keys exist only in server environment variables; none are in the repository or the frontend bundle.
 - Workbook bytes are never stored; only parsed values and metadata are persisted.
-- Validation errors are returned without input values or exception context (`include_input=False`, `include_context=False`).
+- Workbook upload errors are returned without input values or exception context (`include_input=False`, `include_context=False`). JSON request validation uses FastAPI's default handler, which does echo the submitted values back to the caller (see finding SA-07).
 - The OpenAI request sets `store: false`.
 
 ### 7.2 Input and Upload Hardening
@@ -283,6 +283,8 @@ The simulator compares **Plan A** (stored order context) with **Plan B** (user-c
 
 Roles: `sme_owner`, `investor`, `analyst`, `admin`. An `sme_owner` may act only for its own SME; funder-only detail is shown only to `investor`, `analyst`, or `admin`. Enforcement is controlled by `RBAC_ENFORCED`, and `/health` reports `enforced`, `secretConfigured`, and `devHeaderAccepted` so that an insecure configuration is visible.
 
+The role check is applied only where a route declares the `resolve_principal` dependency: the funder portal, saved simulations, and project constraints. The calculation, upload, funding-match, SWARM, and order-simulation routes, which can write to the database, do not declare it, so turning on `RBAC_ENFORCED` alone does not protect them (see finding SA-02).
+
 ### 7.5 Current Demo Posture and Known Gaps
 
 | Item | Status at the time of writing |
@@ -293,11 +295,69 @@ Roles: `sme_owner`, `investor`, `analyst`, `admin`. An `sme_owner` may act only 
 | Load testing | Not performed. The prototype is suitable for supervised, low-volume use. |
 | Business commitments | Funding applications, agreement signing, funder information requests, report export, and resource reservation are disabled (`/capabilities`). |
 
-Before handling real data, the minimum steps are: set `AUTH_SECRET`, enable `RBAC_ENFORCED`, add login to the frontend, restrict `CORS_ORIGINS`, add rate limiting to public endpoints, run a load test, and review data retention for the `upload_events`, `financial_records`, and `ai_analyses` tables.
+The security assessment in Section 8 lists each gap with its severity and the recommended fix.
 
 ---
 
-## 8. Verification
+## 8. Security Assessment
+
+**Date:** October 19, 2026  
+**Target:** `https://sme-finance-copilot-frontend.vercel.app` (frontend, `/api/v1`, `/health`, `/docs`) and the repository at `c16e75d`.  
+**Method:** source-code review of every router, authentication module, parser, and the frontend API layer; dependency audit (`pnpm audit --prod`, `pip-audit -r requirements.txt`); scan of the full git history for credentials; and passive checks of the live site (response headers, CORS preflight from a foreign origin, error output for malformed input, exposure of API documentation).  
+**Not in scope:** penetration testing, load or denial-of-service testing, and any request that writes to the live database. Findings about write endpoints come from the source code and were not exploited on the live site.
+
+### 8.1 Summary
+
+| Severity | Count | Findings |
+| --- | --- | --- |
+| High | 2 | SA-01, SA-02 |
+| Medium | 3 | SA-03, SA-04, SA-05 |
+| Low | 4 | SA-06, SA-07, SA-08, SA-09 |
+| Informational | 2 | SA-10, SA-11 |
+
+The demo is acceptable for **supervised presentations with synthetic data**. It is **not ready for real customer data** until SA-01 to SA-05 are fixed.
+
+### 8.2 Findings
+
+| ID | Severity | Finding | Evidence | Recommendation |
+| --- | --- | --- | --- | --- |
+| SA-01 | High | **No authentication on the public deployment.** Anyone with the URL can read every stored record and use every endpoint. There is no login and no separation between users or SMEs. | `/health` returns `auth.enforced=false`, `secretConfigured=false`. | Set `AUTH_SECRET` (≥ 32 random characters) and `RBAC_ENFORCED=true`, and add a login screen that stores the bearer token through `apiClient.setAuthToken`. Until then, keep all data synthetic. |
+| SA-02 | High | **Write endpoints have no authorization check, even with RBAC on.** `POST /calculate`, `/calculate/excel`, `/upload`, `/match-funding`, `/swarm`, and `/simulate/order` can write to the database but do not declare `resolve_principal`. With `persist=true` and a valid SME UUID (listed publicly by `GET /shops`), an anonymous caller can add financial records, overwrite stored SWARM allocations, and save simulations. | `backend/app/routers/{calculate,upload,match_funding,swarm,simulate}.py` contain no principal dependency. | Add `Depends(resolve_principal)` to every write route, and check `principal.owns_sme(sme_id)` or a staff role before persisting. Add tests that call each write route without a token and expect 401 when enforcement is on. |
+| SA-03 | Medium | **Writes are on by default.** `persist` defaults to `true` on `/calculate`, `/upload`, `/match-funding`, and `/swarm`. The bundled frontend always sends `persist=false`, but any other client that omits the flag writes to the database. | Default values in the router signatures (e.g. `persist: bool = True`). | Default `persist` to `false`, and require an explicit `true` from an authorized caller. |
+| SA-04 | Medium | **A GET request can write.** `GET /forecast` defaults to `project_obligations=true`, which may upsert cash events. GET requests can be triggered by link previews, crawlers, or prefetching. | `backend/app/routers/insights.py`, `docs/API_CONTRACT_MATRIX.md` Section 3. | Move the upsert to a POST route, or default `project_obligations` to `false`. |
+| SA-05 | Medium | **No rate limiting outside login.** Uploads are parsed per request (up to 5 MiB, 60-second function limit), and each database call opens a new connection. A burst of requests can exhaust the Neon connection limit or the Vercel function quota. | Only `throttle.py` (login) limits requests. | Add per-IP limits on upload, analysis, and write routes (for example Vercel Firewall rules or a middleware limiter), and use Neon's pooled connection endpoint. |
+| SA-06 | Low | **Security headers are missing.** Responses have HSTS (from Vercel) but no `Content-Security-Policy`, `X-Frame-Options` / `frame-ancestors`, `X-Content-Type-Options`, or `Referrer-Policy`. | `curl -I` on `/` and `/api/v1/capabilities`. | Add these headers in `vercel.json`. A CSP should allow `self`, Google Fonts, and nothing else. |
+| SA-07 | Low | **Validation errors echo the request body.** For JSON routes, a 422 response repeats the submitted values (`"input": {...}`). The caller sees only their own data, but the values can end up in proxy or browser logs. | `POST /api/v1/inputs/manual` with an invalid body returns the body in `detail[].input`. | Register a `RequestValidationError` handler that returns `errors(include_input=False, include_context=False)`, as the upload path already does. |
+| SA-08 | Low | **API documentation is public.** `/docs`, `/redoc`, and `/openapi.json` return 200 on the live site, listing every route and field. | HTTP 200 on all three paths. | Disable them in production (`FastAPI(docs_url=None, redoc_url=None, openapi_url=None)` when an env flag is set), or protect them behind authentication. |
+| SA-09 | Low | **XML hardening library not installed.** `openpyxl` uses `defusedxml` when it is available; it is not in `requirements.txt`. Python 3.12's bundled expat already limits entity expansion, and the 25 MiB / 1,000-entry ZIP caps bound the input, so the residual risk is low. | `requirements.txt` has no `defusedxml`. | Add `defusedxml` to `requirements.txt` and `backend/requirements.txt`. |
+| SA-10 | Info | **Default CORS list names another deployment.** If `CORS_ORIGINS` is unset, `https://sme-finance-copilot.vercel.app` is allowed. The live site is same-origin and rejects foreign origins (preflight from `https://evil.example` returned 400). | `backend/app/main.py`. | Set `CORS_ORIGINS` explicitly in every environment. |
+| SA-11 | Info | **Session token is kept in `sessionStorage`.** If an XSS flaw were introduced, a script could read it. No HTML-injection sinks (`dangerouslySetInnerHTML`, `innerHTML`) exist in `src/`, and React escapes rendered text. | `src/api/client.ts`. | Keep the CSP from SA-06; consider an `HttpOnly` cookie if login is added. |
+
+### 8.3 Controls Verified as Effective
+
+| Area | Result |
+| --- | --- |
+| Dependencies | `pnpm audit --prod`: no known vulnerabilities. `pip-audit -r requirements.txt`: no known vulnerabilities. Root `requirements.txt` pins exact versions. |
+| Secrets in the repository | Full git history scanned for database URLs, GitHub tokens, and API keys: only placeholder values (`password`, `postgres`, example hosts) and `backend/.env.example` were found. No real credential is committed, and no secret uses a `VITE_` variable. |
+| Upload handling | Size, ZIP-entry, and expanded-size limits; formulas and external links are never evaluated; workbook bytes are not stored. |
+| SQL injection | Queries use SQLAlchemy expressions or `text()` with bound parameters. |
+| Password and token design | scrypt hashing, HMAC-SHA256 tokens without an algorithm field, no default secret, revocation, and login throttling (Section 7.3). Unused in the demo until SA-01 is fixed. |
+| LLM boundary | Model output is restricted by a strict schema to existing finding IDs; it cannot alter numbers, grades, or findings, and the call is server-side only with `store: false`. |
+| Transport | HTTPS with HSTS (`max-age=63072000; includeSubDomains; preload`). |
+| Cross-origin requests | A foreign-origin preflight is rejected. |
+| Business commitments | Funding applications, signing, reservations, and export are disabled by `/capabilities`, so the demo cannot create a commitment on anyone's behalf. |
+
+### 8.4 Remediation Plan
+
+| Priority | Action | Fixes |
+| --- | --- | --- |
+| Before any real data | Turn on authentication end to end; add the principal check and ownership test to every write route; default `persist` to `false`; move the `/forecast` write to POST. | SA-01, SA-02, SA-03, SA-04 |
+| Before a public launch | Rate limits on upload, analysis, and write routes; use the Neon pooled endpoint; add security headers; hide API docs; strip input from 422 responses; add `defusedxml`; run a load test. | SA-05 to SA-09 |
+| Housekeeping | Set `CORS_ORIGINS` explicitly; give the application a least-privilege database role instead of the Neon owner role; define retention for `upload_events`, `financial_records`, and `ai_analyses`; rotate any credential that was shared during delivery. | SA-10, SA-11 |
+
+---
+
+## 9. Verification
 
 | Check | Command | Result (October 19, 2026) |
 | --- | --- | --- |
@@ -310,7 +370,7 @@ Before handling real data, the minimum steps are: set `AUTH_SECRET`, enable `RBA
 
 ---
 
-## 9. Limitations
+## 10. Limitations
 
 - Grades, funding rankings, and SWARM proposals follow demo policies on synthetic data; they are not lender decisions.
 - Forecasts require a confirmed-complete schedule of dated events; statement totals alone cannot produce a dated cash timeline or a product/channel breakdown.

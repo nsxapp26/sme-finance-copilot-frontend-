@@ -7,6 +7,30 @@ import { useT, TranslationKey } from "@/i18n";
 
 const TIPS: TranslationKey[] = ["robot.tip1", "robot.tip2", "robot.tip3", "robot.tip4"];
 
+// Tip rotation shared by the SVG robot and the 3D robot
+export function useRobotTips(greet: boolean) {
+  const [tip, setTip] = useState(0);
+  const [showTip, setShowTip] = useState(greet);
+  // Hide the first greeting after a while so it doesn't cover the hero forever
+  useEffect(() => {
+    const timer = window.setTimeout(() => setShowTip(false), 7000);
+    return () => window.clearTimeout(timer);
+  }, []);
+  const next = () => { setTip((value) => (value + 1) % TIPS.length); setShowTip(true); };
+  return { tipKey: TIPS[tip], showTip, next };
+}
+
+export const RobotBubble: React.FC<{ alert: boolean; tipKey: TranslationKey; show: boolean; below?: boolean; className?: string }> = ({ alert, tipKey, show, below = false, className = "" }) => {
+  const t = useT();
+  if (!show && !alert) return null;
+  return (
+    <div role="status" aria-live="polite"
+      className={`robot-bubble absolute z-30 ${below ? "right-0 top-full mt-1" : className || "right-full top-2 mr-2"} w-44 sm:w-52 rounded-xl border border-resource-glow/40 bg-navy-deep/90 px-3 py-2 text-[11px] leading-snug text-slate-100 shadow-glow-resource backdrop-blur`}>
+      <span className="font-mono text-[10px] text-resource-glow">&gt; copilot:</span> {alert ? t("robot.alert") : t(tipKey)}
+    </div>
+  );
+};
+
 export const CyberRobot: React.FC<{ animate: boolean; alert?: boolean; greet?: boolean; bubbleBelow?: boolean; className?: string }> = ({ animate, alert = false, greet = true, bubbleBelow = false, className = "" }) => {
   const t = useT();
   const ref = useRef<SVGSVGElement>(null);
@@ -14,8 +38,7 @@ export const CyberRobot: React.FC<{ animate: boolean; alert?: boolean; greet?: b
   const uid = useId().replace(/:/g, "");
   const shell = `robot-shell-${uid}`, coreFill = `robot-core-${uid}`;
   const [look, setLook] = useState({ x: 0, y: 0 });
-  const [tip, setTip] = useState(0);
-  const [showTip, setShowTip] = useState(greet);
+  const { tipKey, showTip, next } = useRobotTips(greet);
 
   // Eyes follow the pointer (mouse only, max 3px so the eyes stay inside the visor)
   useEffect(() => {
@@ -38,26 +61,14 @@ export const CyberRobot: React.FC<{ animate: boolean; alert?: boolean; greet?: b
     return () => { cancelAnimationFrame(frame); window.removeEventListener("pointermove", onMove); };
   }, [animate]);
 
-  // Hide the first greeting after a while so it doesn't cover the hero forever
-  useEffect(() => {
-    const timer = window.setTimeout(() => setShowTip(false), 7000);
-    return () => window.clearTimeout(timer);
-  }, []);
-
   const eye = alert ? "#F59A23" : "#4FE7D8";
   const core = alert ? "#F59A23" : "#9B82FF";
-  const message = alert ? t("robot.alert") : t(TIPS[tip]);
 
   return (
     <div className={`select-none ${className || "relative"}`}>
-      {(showTip || alert) && (
-        <div role="status" aria-live="polite"
-          className={`robot-bubble absolute z-30 ${bubbleBelow ? "right-0 top-full mt-1" : "right-full top-2 mr-2"} w-44 sm:w-52 rounded-xl border border-resource-glow/40 bg-navy-deep/90 px-3 py-2 text-[11px] leading-snug text-slate-100 shadow-glow-resource backdrop-blur`}>
-          <span className="font-mono text-[10px] text-resource-glow">&gt; copilot:</span> {message}
-        </div>
-      )}
+      <RobotBubble alert={alert} tipKey={tipKey} show={showTip} below={bubbleBelow} />
       <button type="button" aria-label={t("robot.label")} title={t("robot.label")}
-        onClick={() => { setTip((value) => (value + 1) % TIPS.length); setShowTip(true); }}
+        onClick={next}
         className={`block rounded-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-resource-glow ${animate ? "robot-float" : ""}`}>
         <svg ref={ref} viewBox="0 0 120 150" className="h-full w-full overflow-visible" aria-hidden="true">
           <defs>

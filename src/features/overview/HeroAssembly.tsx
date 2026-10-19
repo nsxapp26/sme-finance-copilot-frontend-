@@ -5,7 +5,7 @@ import { SwarmOrder, SwarmProposal, UnlockResource } from "@/api/contracts/types
 import { useEnvelope } from "@/hooks/useEnvelope";
 import { useT } from "@/i18n";
 import { HeroBackdrop, PopWords } from "@/components/fx/HeroBackdrop";
-import { CyberRobot } from "@/components/fx/CyberRobot";
+import { CopilotRobot } from "@/components/fx/CopilotRobot";
 import { storedProposal } from "@/api/dataAvailability";
 import { DataKindBadge } from "@/components/signature/DataKindBadge";
 import {
@@ -92,9 +92,8 @@ export const HeroAssembly: React.FC = () => {
       <HeroBackdrop animate={!isReducedMotion} />
       <div className="scanlines" aria-hidden="true" />
 
-      {/* Copilot robot: top-right on desktop, small next to the title on phones/tablets */}
-      <CyberRobot animate={!isReducedMotion} alert={activeScenario !== "normal"} className="hidden lg:block absolute top-6 right-10 z-20 w-28 h-[140px]" />
-      <CyberRobot animate={!isReducedMotion} alert={activeScenario !== "normal"} greet={false} bubbleBelow className="lg:hidden absolute top-3 right-3 z-20 w-14 h-[70px]" />
+      {/* Copilot robot: 3D (or SVG fallback) top-right on desktop, small SVG next to the title on phones/tablets */}
+      <CopilotRobot animate={!isReducedMotion} alert={activeScenario !== "normal"} />
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column: Headline, Description & CTAs */}
@@ -181,7 +180,7 @@ export const HeroAssembly: React.FC = () => {
         <MobileFlow nodes={mobileFlow} animate={!isReducedMotion} onOpen={setCurrentPage} />
 
         {/* Tablet/desktop: grid diagram (the old absolute positioning made cards overlap) */}
-        <div className="lg:col-span-7 hidden sm:block" aria-label={t("hero.diagramLabel")}>
+        <div className="lg:col-span-7 hidden sm:block lg:pt-56" aria-label={t("hero.diagramLabel")}>
           <div className={`grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1.15fr)_28px_minmax(0,1fr)_28px_minmax(0,1fr)] items-center ${isReducedMotion ? "" : "hero-float"}`}>
             <FlowCard node={nodes.buyer} />
             <FlowLink active={!isReducedMotion} />

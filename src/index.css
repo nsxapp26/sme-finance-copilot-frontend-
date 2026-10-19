@@ -3,10 +3,31 @@
 @tailwind utilities;
 
 :root {
-  --bg-ivory: #FAF7F0;
-  --surface: #FFFFFF;
-  --ink: #14224A;
-  --ink-muted: #5B678A;
+  /* Theme tokens as RGB channels so Tailwind can add opacity (see tailwind.config.js) */
+  --c-ivory: 250 247 240;
+  --c-surface: 255 255 255;
+  --c-ink: 20 34 74;
+  --c-ink-muted: 91 103 138;
+  --c-ink-light: 142 155 181;
+  --c-border: 230 225 213;
+  --c-brand-light: 240 236 254;
+  --c-resource-light: 230 250 248;
+  --c-attention-light: 254 245 233;
+  --c-danger-light: 253 236 238;
+  --c-shadow: 20 34 74;
+  /* Chart colors (SVG reads these through var()) */
+  --chart-ink: #14224A;
+  --chart-muted: #5B678A;
+  --chart-grid: #ECE7DC;
+  --chart-zero: #C9C2B2;
+  --chart-hover: #F4F1EA;
+  --chart-brand: #6C4CF1;
+  --chart-danger: #E5484D;
+
+  --bg-ivory: rgb(var(--c-ivory));
+  --surface: rgb(var(--c-surface));
+  --ink: rgb(var(--c-ink));
+  --ink-muted: rgb(var(--c-ink-muted));
   --navy-deep: #0A1230;
   --navy-surface: #101B3B;
   --navy-card: #15224A;
@@ -16,7 +37,31 @@
   --resource: #16C1B0;
   --attention: #F59A23;
   --danger: #E5484D;
-  --line: #E6E1D5;
+  --line: rgb(var(--c-border));
+  color-scheme: light;
+}
+
+/* Dark theme: same deep navy, purple and teal as the hero */
+html.dark {
+  --c-ivory: 7 13 36;
+  --c-surface: 15 24 56;
+  --c-ink: 230 234 247;
+  --c-ink-muted: 160 171 204;
+  --c-ink-light: 116 128 166;
+  --c-border: 38 51 99;
+  --c-brand-light: 34 28 86;
+  --c-resource-light: 10 46 54;
+  --c-attention-light: 52 38 14;
+  --c-danger-light: 58 22 33;
+  --c-shadow: 0 0 0;
+  --chart-ink: #E6EAF7;
+  --chart-muted: #A0ABCC;
+  --chart-grid: #1E2A55;
+  --chart-zero: #3A4A80;
+  --chart-hover: #18244D;
+  --chart-brand: #9B82FF;
+  --chart-danger: #FF6B70;
+  color-scheme: dark;
 }
 
 body {
@@ -26,6 +71,14 @@ body {
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+/* Soft purple and teal glow behind every page in dark mode, like the hero */
+html.dark body {
+  background-image:
+    radial-gradient(60rem 40rem at 0% 0%, rgba(108, 76, 241, 0.16), transparent 60%),
+    radial-gradient(50rem 40rem at 100% 30%, rgba(22, 193, 176, 0.10), transparent 60%),
+    radial-gradient(50rem 30rem at 50% 100%, rgba(155, 82, 220, 0.10), transparent 60%);
+  background-attachment: fixed;
 }
 
 /* Ensure tabular numbers for financial figures */
@@ -465,3 +518,121 @@ body {
     scroll-behavior: auto !important;
   }
 }
+
+/* ===== Dark theme overrides =====
+   Tailwind palette classes used on light cards are remapped here, so components
+   don't need a dark: variant on every class. :where() keeps specificity equal to the
+   utility itself, so hover/focus utilities still win.
+   Hover overrides use plain html.dark because Tailwind emits hover: rules at the end of the file. Already-dark sections (SWARM, Story Mode)
+   use other shades and are not touched. */
+:where(html.dark) .bg-white,
+:where(html.dark) .bg-white\/95,
+:where(html.dark) .bg-white\/90,
+:where(html.dark) .bg-white\/80,
+:where(html.dark) .bg-white\/70,
+:where(html.dark) .bg-white\/60 { background-color: rgb(var(--c-surface) / 0.92); }
+:where(html.dark) .bg-slate-50,
+:where(html.dark) .bg-slate-50\/50,
+:where(html.dark) .bg-slate-50\/70,
+:where(html.dark) .bg-slate-50\/90 { background-color: #141F46; }
+:where(html.dark) .bg-slate-100,
+:where(html.dark) .bg-slate-100\/70,
+:where(html.dark) .bg-slate-100\/80 { background-color: #18244D; }
+:where(html.dark) .bg-slate-200,
+:where(html.dark) .bg-slate-200\/60 { background-color: #24305E; }
+:where(html.dark) .bg-slate-300\/60 { background-color: #2E3B6E; }
+html.dark .hover\:bg-white:hover,
+html.dark .hover\:bg-slate-50:hover,
+html.dark .hover\:bg-slate-50\/50:hover { background-color: #1A2752; }
+html.dark .hover\:bg-slate-100:hover,
+html.dark .hover\:bg-slate-100\/80:hover { background-color: #1F2C5A; }
+html.dark .hover\:bg-slate-200:hover,
+html.dark .hover\:bg-slate-200\/60:hover { background-color: #2A3766; }
+:where(html.dark) .border-slate-100,
+:where(html.dark) .border-slate-100\/60,
+:where(html.dark) .border-slate-200,
+:where(html.dark) .border-slate-200\/80,
+:where(html.dark) .border-slate-200\/90 { border-color: rgb(var(--c-border)); }
+:where(html.dark) .border-slate-300,
+html.dark .hover\:border-slate-300:hover { border-color: #33427A; }
+:where(html.dark) .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgb(var(--c-border)); }
+:where(html.dark) .text-slate-500 { color: #8E9BC4; }
+:where(html.dark) .text-slate-600,
+:where(html.dark) .text-slate-700 { color: rgb(var(--c-ink-muted)); }
+html.dark .hover\:text-slate-600:hover { color: rgb(var(--c-ink)); }
+:where(html.dark) .bg-emerald-50,
+:where(html.dark) .bg-emerald-50\/50,
+:where(html.dark) .bg-emerald-100\/60 { background-color: rgba(16, 185, 129, 0.13); }
+:where(html.dark) .bg-amber-50,
+:where(html.dark) .bg-amber-50\/40,
+:where(html.dark) .bg-amber-50\/50 { background-color: rgba(245, 158, 11, 0.12); }
+:where(html.dark) .bg-amber-100,
+html.dark .hover\:bg-amber-50:hover { background-color: rgba(245, 158, 11, 0.2); }
+:where(html.dark) .bg-rose-50,
+:where(html.dark) .bg-rose-50\/50,
+:where(html.dark) .bg-rose-50\/90,
+:where(html.dark) .bg-red-50,
+:where(html.dark) .bg-red-50\/40,
+:where(html.dark) .bg-red-50\/60 { background-color: rgba(244, 63, 94, 0.12); }
+:where(html.dark) .bg-rose-100,
+:where(html.dark) .bg-red-100,
+:where(html.dark) .bg-red-100\/70,
+html.dark .hover\:bg-red-100:hover { background-color: rgba(239, 68, 68, 0.2); }
+:where(html.dark) .bg-red-300\/60 { background-color: rgba(239, 68, 68, 0.32); }
+:where(html.dark) .bg-indigo-50,
+:where(html.dark) .bg-indigo-50\/60 { background-color: rgba(99, 102, 241, 0.15); }
+:where(html.dark) .border-emerald-200,
+:where(html.dark) .border-emerald-200\/80,
+:where(html.dark) .border-emerald-300 { border-color: rgba(52, 211, 153, 0.35); }
+:where(html.dark) .border-amber-200,
+:where(html.dark) .border-amber-200\/80,
+:where(html.dark) .border-amber-300 { border-color: rgba(251, 191, 36, 0.35); }
+:where(html.dark) .border-rose-200,
+:where(html.dark) .border-red-200,
+:where(html.dark) .border-red-300 { border-color: rgba(251, 113, 133, 0.38); }
+:where(html.dark) .border-indigo-100,
+:where(html.dark) .border-indigo-200 { border-color: rgba(129, 140, 248, 0.32); }
+:where(html.dark) .text-emerald-600,
+:where(html.dark) .text-emerald-700 { color: #34D399; }
+:where(html.dark) .text-emerald-800,
+:where(html.dark) .text-emerald-900,
+:where(html.dark) .text-emerald-950 { color: #6EE7B7; }
+:where(html.dark) .text-amber-600,
+:where(html.dark) .text-amber-700 { color: #FBBF24; }
+:where(html.dark) .text-amber-800,
+:where(html.dark) .text-amber-900,
+:where(html.dark) .text-amber-950 { color: #FCD34D; }
+:where(html.dark) .text-rose-600,
+:where(html.dark) .text-rose-700,
+:where(html.dark) .text-rose-700\/80,
+:where(html.dark) .text-red-700 { color: #FB7185; }
+:where(html.dark) .text-rose-900,
+:where(html.dark) .text-rose-950,
+:where(html.dark) .text-red-900,
+:where(html.dark) .text-red-950 { color: #FDA4AF; }
+:where(html.dark) .text-indigo-600 { color: #A5B4FC; }
+:where(html.dark) .text-indigo-900 { color: #C7D2FE; }
+:where(html.dark) .text-brand,
+html.dark .hover\:text-brand:hover { color: #A890FF; }
+:where(html.dark) .text-brand-dark,
+html.dark .hover\:text-brand-dark:hover { color: #C2B3FF; }
+:where(html.dark) .text-resource-dark,
+html.dark .hover\:text-resource-dark:hover { color: #3FD9C8; }
+:where(html.dark) .text-danger { color: #FF7A7F; }
+:where(html.dark) .text-danger-dark { color: #FF9A9E; }
+:where(html.dark) .text-attention-dark { color: #FBBF5A; }
+
+/* Component pieces with hard-coded light colors */
+html.dark .glass-panel { background: rgba(15, 24, 56, 0.82); }
+html.dark .page-header {
+  background: rgba(15, 24, 56, 0.72);
+  border-color: rgba(155, 130, 255, 0.22);
+  box-shadow: 0 16px 40px -24px rgba(108, 76, 241, 0.6);
+}
+html.dark .skeleton {
+  background-color: #18244D;
+  background-image: linear-gradient(90deg, rgba(255,255,255,0) 0, rgba(255,255,255,0.08) 50%, rgba(255,255,255,0) 100%);
+}
+html.dark ::-webkit-scrollbar-thumb { background: rgba(120, 135, 190, 0.35); }
+html.dark input, html.dark select, html.dark textarea { color-scheme: dark; }
+html.dark ::placeholder { color: rgb(var(--c-ink-light)); }

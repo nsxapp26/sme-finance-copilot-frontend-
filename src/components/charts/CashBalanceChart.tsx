@@ -13,10 +13,10 @@ type Props = {
 
 type Point = { date: string; value: number; deficit: boolean; titles: string[]; opening?: boolean };
 
-const BRAND = "#6C4CF1";
-const DANGER = "#E5484D";
-const GRID = "#ECE7DC";
-const MUTED = "#5B678A";
+const BRAND = "var(--chart-brand)";
+const DANGER = "var(--chart-danger)";
+const GRID = "var(--chart-grid)";
+const MUTED = "var(--chart-muted)";
 
 const toTime = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
 // Month names in the selected language (day + month only)
@@ -118,7 +118,7 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
           {/* Gridlines + y-axis ticks */}
           {ticks.map((t) => (
             <g key={t}>
-              <line x1={pad.left} x2={width - pad.right} y1={y(t)} y2={y(t)} stroke={t === 0 ? "#C9C2B2" : GRID} strokeWidth="1" />
+              <line x1={pad.left} x2={width - pad.right} y1={y(t)} y2={y(t)} stroke={t === 0 ? "var(--chart-zero)" : GRID} strokeWidth="1" />
               <text x={pad.left - 8} y={y(t)} dy="0.32em" textAnchor="end" fontSize="10" fill={MUTED} style={{ fontVariantNumeric: "tabular-nums" }}>{compactBaht(t)}</text>
             </g>
           ))}
@@ -155,7 +155,7 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
             const p = points[i];
             const nearRight = x(p.date) > width - 90;
             return (
-              <text key={`label-${i}`} x={x(p.date) + (nearRight ? -8 : 8)} y={y(p.value) - 9} textAnchor={nearRight ? "end" : "start"} fontSize="11" fontWeight="600" fill="#14224A" className="chart-dot" style={{ animationDelay: "700ms" }}>
+              <text key={`label-${i}`} x={x(p.date) + (nearRight ? -8 : 8)} y={y(p.value) - 9} textAnchor={nearRight ? "end" : "start"} fontSize="11" fontWeight="600" fill="var(--chart-ink)" className="chart-dot" style={{ animationDelay: "700ms" }}>
                 {i === lowestIndex && i !== lastIndex ? t("chart.lowest", { amount: compactBaht(p.value) }) : compactBaht(p.value)}
               </text>
             );

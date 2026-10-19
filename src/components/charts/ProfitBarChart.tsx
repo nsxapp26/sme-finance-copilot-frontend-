@@ -10,9 +10,9 @@ export type ProfitBar = {
 
 type Props = { title: string; bars: ProfitBar[] };
 
-const BRAND = "#6C4CF1";
-const DANGER = "#E5484D";
-const MUTED = "#5B678A";
+const BRAND = "var(--chart-brand)";
+const DANGER = "var(--chart-danger)";
+const MUTED = "var(--chart-muted)";
 
 // Horizontal bar chart: zero line in the middle when there are losses; profit goes right, loss goes left
 export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
@@ -50,7 +50,7 @@ export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
       </figcaption>
       <div ref={ref} className="relative w-full">
         <svg width={width} height={height} role="list" aria-label={title} className="block">
-          <line x1={zeroX} x2={zeroX} y1={0} y2={height} stroke="#C9C2B2" strokeWidth="1" />
+          <line x1={zeroX} x2={zeroX} y1={0} y2={height} stroke="var(--chart-zero)" strokeWidth="1" />
           {bars.map((bar, i) => {
             const cy = i * row + row / 2 + 4;
             const w = Math.max(Math.abs(bar.value) * scale, bar.value === 0 ? 0 : 2);
@@ -76,8 +76,8 @@ export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
                 className="cursor-default outline-none"
               >
                 {/* Hit area larger than the bar itself */}
-                <rect x={0} y={cy - row / 2} width={width} height={row} fill={active === i ? "#F4F1EA" : "transparent"} rx="8" />
-                <text x={labelW - 8} y={cy} dy="0.32em" textAnchor="end" fontSize="11" fill="#14224A" fontWeight="600">
+                <rect x={0} y={cy - row / 2} width={width} height={row} fill={active === i ? "var(--chart-hover)" : "transparent"} rx="8" />
+                <text x={labelW - 8} y={cy} dy="0.32em" textAnchor="end" fontSize="11" fill="var(--chart-ink)" fontWeight="600">
                   {bar.label.length > (narrow ? 12 : 20) ? `${bar.label.slice(0, narrow ? 11 : 19)}…` : bar.label}
                 </text>
                 <path d={d} fill={loss ? DANGER : BRAND} className={loss ? "chart-grow-left" : "chart-grow-right"}

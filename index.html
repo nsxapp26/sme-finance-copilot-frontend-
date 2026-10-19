@@ -1,10 +1,15 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" class="dark">
   <head>
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>SME Finance Copilot</title>
+    <meta name="theme-color" content="#070D24">
+    <!-- Apply the saved theme before the first paint so light users don't see a dark flash (dark is the default) -->
+    <script>
+      try { if (localStorage.getItem("sme-copilot-theme") === "light") document.documentElement.classList.remove("dark"); } catch (e) {}
+    </script>
     <!-- Load only the two font families used by the app. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -12,7 +17,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap" media="print" onload="this.onload=null;this.media='all'">
     <noscript><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600;700&family=Prompt:wght@400;500;600;700&display=swap"></noscript>
   </head>
-  <body class="bg-[#FAF7F0] text-[#14224A] font-sans antialiased selection:bg-[#6C4CF1]/20 selection:text-[#6C4CF1]">
+  <body class="bg-ivory text-ink font-sans antialiased selection:bg-[#6C4CF1]/20 selection:text-[#6C4CF1]">
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>

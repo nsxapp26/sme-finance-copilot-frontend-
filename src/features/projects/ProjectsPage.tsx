@@ -120,13 +120,13 @@ export const ProjectsPage: React.FC = () => {
         </div>
 
         {/* Project Selector Tabs */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <div className="flex flex-wrap items-stretch gap-2 pb-1 text-xs">
           {projects.map((p) => (
             <button
               key={p.id}
               type="button"
               onClick={() => setSelectedProjectId(p.id)}
-              className={`px-4 py-2 rounded-xl text-left border transition-all ${
+              className={`max-w-full px-4 py-2 rounded-xl text-left border transition-all ${
                 selectedProjectId === p.id
                   ? "bg-white border-brand ring-2 ring-brand/20 shadow-sm"
                   : "bg-slate-50 border-slate-200 text-ink-muted hover:bg-white"

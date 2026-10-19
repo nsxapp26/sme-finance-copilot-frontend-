@@ -32,6 +32,17 @@ function readLanguage(): Language {
   return "en";
 }
 
+export type Theme = "dark" | "light";
+const THEME_KEY = "sme-copilot-theme";
+
+// Dark by default (matches the hero); index.html applies the saved choice before first paint
+function readTheme(): Theme {
+  try {
+    if (localStorage.getItem(THEME_KEY) === "light") return "light";
+  } catch { /* private mode / blocked storage */ }
+  return "dark";
+}
+
 export type PageStateMode =
   | "normal"
   | "empty"
@@ -71,6 +82,10 @@ interface AppState {
   // Language
   language: Language;
   setLanguage: (language: Language) => void;
+
+  // Color theme
+  theme: Theme;
+  setTheme: (theme: Theme) => void;
 
   // Motion Settings
   motionIntensity: MotionIntensity;
@@ -151,6 +166,13 @@ export const useAppStore = create<AppState>((set, get) => ({
   setLanguage: (language) => {
     try { localStorage.setItem(LANGUAGE_KEY, language); } catch { /* ignore */ }
     set({ language });
+  },
+
+  // Color theme
+  theme: readTheme(),
+  setTheme: (theme) => {
+    try { localStorage.setItem(THEME_KEY, theme); } catch { /* ignore */ }
+    set({ theme });
   },
 
   // Motion Settings

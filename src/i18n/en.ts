@@ -1,4 +1,4 @@
-// English (source language) — every key must also exist in th.ts
+// ภาษาอังกฤษ (ต้นฉบับ) — key ทุกตัวต้องมีใน th.ts ด้วย
 export const en = {
   // app
   "app.name": "SME Finance Copilot",
@@ -1210,6 +1210,10 @@ export const en = {
   "unlock.tpl.shortfall": "Capacity shortfall: {now} per day (was {was})",
   "unlock.tpl.profit": "Order profit: {now} (was {was})",
   "unlock.tpl.gap": "Funding gap: {now} (was {was})",
+  // theme
+  "theme.label": "Theme",
+  "theme.dark": "Dark",
+  "theme.light": "Light",
   // sales
   "sales.loadingLabel": "Loading sales",
   "sales.loading": "Loading product and channel records…",

@@ -89,6 +89,9 @@ export const App: React.FC = () => {
   useTilt(isReducedMotion);
   // Keep <html lang> in sync with the chosen language (for screen readers and font selection)
   React.useEffect(() => { document.documentElement.lang = language; }, [language]);
+  // Dark/light theme lives on <html class="dark">; colors switch through CSS variables in index.css
+  const theme = useAppStore((st) => st.theme);
+  React.useEffect(() => { document.documentElement.classList.toggle("dark", theme === "dark"); }, [theme]);
   React.useEffect(() => { const timer = window.setTimeout(prefetchPages, 1500); return () => window.clearTimeout(timer); }, []);
 
   const tabIndex = mobileTabs.findIndex((tab) => tab.id === currentPage);
@@ -129,7 +132,7 @@ export const App: React.FC = () => {
   };
 
   return (
-    <div className={`min-h-screen flex flex-col bg-[#FAF7F0] ${isReducedMotion ? "reduce-motion" : ""}`}>
+    <div className={`min-h-screen flex flex-col ${isReducedMotion ? "reduce-motion" : ""}`}>
       {/* Top Application Header */}
       <AppHeader />
 

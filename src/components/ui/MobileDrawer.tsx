@@ -4,6 +4,7 @@ import { SwarmProposal } from "@/api/contracts/types";
 import { useEnvelope } from "@/hooks/useEnvelope";
 import { TranslationKey, useT } from "@/i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import { storedProposal } from "@/api/dataAvailability";
 import { useAppStore, NavPage, UserRole } from "@/store/useAppStore";
 import {
@@ -234,6 +235,8 @@ export const MobileDrawer: React.FC = () => {
         <div className="px-3 pt-3">
           <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">{t("lang.label")}</div>
           <LanguageSwitcher />
+          <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mt-3 mb-1.5">{t("theme.label")}</div>
+          <ThemeSwitcher />
         </div>
 
         {/* Scrollable Navigation List */}

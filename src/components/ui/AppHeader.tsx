@@ -5,6 +5,7 @@ import { SwarmOrder } from "@/api/contracts/types";
 import { useEnvelope } from "@/hooks/useEnvelope";
 import { useT } from "@/i18n";
 import { LanguageSwitcher } from "./LanguageSwitcher";
+import { ThemeSwitcher } from "./ThemeSwitcher";
 import {
   Search,
   Sliders,
@@ -225,7 +226,8 @@ export const AppHeader: React.FC = () => {
         </div>
 
         {/* Language picker (on phones it is in the More menu) */}
-        <div className="hidden sm:block">
+        <div className="hidden sm:flex items-center gap-2">
+          <ThemeSwitcher compact />
           <LanguageSwitcher compact />
         </div>
 

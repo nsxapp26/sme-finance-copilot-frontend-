@@ -124,8 +124,8 @@ await assert.rejects(client.evaluateFunding({ ...payload, period_end: "not-a-dat
   return true;
 });
 // An unscoped saved-plan read is refused by the client before it reaches HTTP.
-await assert.rejects(client.listSimulations({}), /project, SME หรือเลขออเดอร์/);
-await assert.rejects(client.readSimulation("741434aa-747c-4376-8c75-66f790dcd68c", {}), /project, SME หรือเลขออเดอร์/);
+await assert.rejects(client.listSimulations({}), /project, SME, or order reference/);
+await assert.rejects(client.readSimulation("741434aa-747c-4376-8c75-66f790dcd68c", {}), /project, SME, or order reference/);
 await assert.rejects(client.validateManual({ ...payload, units_sold: "2500" }), /units_sold/);
 await assert.rejects(client.validateManual({ ...payload, equity: "1" }), /Balance sheet mismatch/);
 const templateResponse = await fetch("http://127.0.0.1:8000/api/v1/analysis/template.xlsx");
@@ -142,8 +142,8 @@ const realFetch = globalThis.fetch;
 globalThis.fetch = () => { throw new Error("Mock mode must not contact the backend"); };
 try {
   assert.equal((await mock.getOverview()).source, "demo_dataset");
-  await assert.rejects(mock.calculate(payload), /โหมดตัวอย่าง/);
-  await assert.rejects(mock.uploadStatement(file), /โหมดตัวอย่าง/);
+  await assert.rejects(mock.calculate(payload), /Demo mode/);
+  await assert.rejects(mock.uploadStatement(file), /Demo mode/);
 } finally { globalThis.fetch = realFetch; }
 
 // Render the component into an element tree with minimal hook/dependency stubs.
@@ -225,7 +225,7 @@ assert.deepEqual(test.pages, []);
 const draft = Object.fromEntries(Object.entries(payload).filter(([, value]) => typeof value !== "object").map(([key, value]) => [key, String(value)]));
 delete draft.interest_expense;
 test = await render("manual", draft);
-test.nodes.find(node => node.type === "button" && node.props.onClick && node.children.some(child => child?.type === "span" && child.children.includes("ยืนยันข้อมูลและเริ่มวิเคราะห์"))).props.onClick();
+test.nodes.find(node => node.type === "button" && node.props.onClick && node.children.some(child => child?.type === "span" && child.children.includes("Confirm data and analyze"))).props.onClick();
 await settle();
 const sent = test.calls.find(([name]) => name === "validate")[1];
 assert.equal(typeof sent.units_sold, "number");

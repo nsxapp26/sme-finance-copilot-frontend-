@@ -1,4 +1,4 @@
-// ภาษาอังกฤษ (ต้นฉบับ) — key ทุกตัวต้องมีใน th.ts ด้วย
+// English (source language) — every key must also exist in th.ts
 export const en = {
   // app
   "app.name": "SME Finance Copilot",

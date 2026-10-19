@@ -9,7 +9,7 @@ import { CalendarPlus, Calculator, Trash2, Loader2 } from "lucide-react";
 
 type EventRow = CashflowPreviewInput["events"][number];
 
-// backend ยอมให้เป็นเงินเข้าได้แค่ receive_payment เท่านั้น ที่เหลือเป็นเงินออก
+// The backend treats only receive_payment as cash in; every other type is cash out
 const eventTypes: { value: FinancialEventType; label: TranslationKey }[] = [
   { value: "receive_payment", label: "cashForm.type.receive" },
   { value: "buy_materials", label: "cashForm.type.materials" },
@@ -30,18 +30,18 @@ function addDays(isoDate: string, days: number): string {
 function daysBetween(from: string, to: string): number {
   return Math.round((Date.parse(`${to}T00:00:00Z`) - Date.parse(`${from}T00:00:00Z`)) / DAY);
 }
-// ใช้วันที่ตามเวลาเครื่อง ไม่ใช่ UTC (ไม่งั้นก่อน 7 โมงเช้าที่ไทยจะได้วันที่เมื่อวาน)
+// Use the local date, not UTC (otherwise before 7 a.m. in Thailand it would be yesterday)
 function localToday(): string {
   const now = new Date();
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
 }
-// backend รับได้ไม่เกิน 18 หลักหน้าจุดทศนิยม
+// The backend accepts at most 18 digits before the decimal point
 const isMoney = (value: string) => /^\d{1,18}(\.\d{1,2})?$/.test(value.trim());
 const baht = (value: number | null | undefined) =>
   value == null ? tr("common.noData") : `฿${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
 type Props = {
-  // ค่าตั้งต้นจากงบที่ import (ถ้ามี) ผู้ใช้แก้ได้ ไม่บังคับ
+  // Defaults come from the imported statement (if any); users can change them, nothing is forced
   defaultAsOf?: string;
   defaultOpeningCash?: string;
   defaultReserve?: string;
@@ -58,9 +58,9 @@ export const CashflowPreviewForm: React.FC<Props> = ({ defaultAsOf, defaultOpeni
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState<(Awaited<ReturnType<typeof apiClient.previewCashflow>>) | null>(null);
   const [changedAfterRun, setChangedAfterRun] = useState(false);
-  // นับจำนวนครั้งที่คำนวณ ใช้เป็น key ให้ animation เล่นใหม่ทุกครั้ง
+  // Count calculations and use it as a key so the animation replays each time
   const [resultKey, setResultKey] = useState(0);
-  // จำค่าที่ใช้ตอนกดคำนวณ (ถ้าแก้ฟอร์มทีหลัง กราฟยังตรงกับผลเดิม)
+  // Remember the inputs used for the last calculation (if the form is edited later, the chart still matches that result)
   const [ranWith, setRanWith] = useState({ asOf: "", openingCash: 0 });
   const [showAllDays, setShowAllDays] = useState(false);
   const { running, run } = useSingleFlight();
@@ -71,7 +71,7 @@ export const CashflowPreviewForm: React.FC<Props> = ({ defaultAsOf, defaultOpeni
     touched();
   };
 
-  // เช็คในฟอร์มก่อนส่ง จะได้ไม่ต้องรอ 422 จาก server แต่ server ก็ยังเช็คซ้ำอยู่ดี
+  // Validate in the form before sending to avoid waiting for a 422; the server still validates again
   const validate = (): string[] => {
     const problems: string[] = [];
     if (!asOf) problems.push(t("cashForm.err.asOf"));
@@ -118,7 +118,7 @@ export const CashflowPreviewForm: React.FC<Props> = ({ defaultAsOf, defaultOpeni
   });
 
   const days: CashflowDay[] = result?.data ?? [];
-  // แค่เลือกแถวจากผลที่ backend คำนวณมาแล้ว ไม่ได้คำนวณยอดเงินเองใน React
+  // Only picks rows from the backend's result; no money is calculated in React
   const lowest = days.length ? days.reduce((min, day) => (day.projectedCash < min.projectedCash ? day : min)) : null;
   const firstBelowReserve = days.find((day) => day.isDeficit) || null;
   const visibleDays = showAllDays ? days : days.filter((day) => day.events.length > 0 || day.isDeficit);

@@ -88,7 +88,7 @@ export const EventPin: React.FC<EventPinProps> = ({
         isActive ? "scale-125 z-30" : "hover:scale-110 z-10"
       } ${isBouncing ? "animate-bounce" : ""} ${className}`}
     >
-      {/* Water-drop Pin Shape (Signature element D4: หมุดทรงหยดน้ำ 5 แบบ) */}
+      {/* Water-drop Pin Shape (Signature element D4: 5 water-drop pin types) */}
       <div
         className={`w-7 h-7 rounded-full rounded-br-none -rotate-45 flex items-center justify-center shadow-md border ${
           config.bg

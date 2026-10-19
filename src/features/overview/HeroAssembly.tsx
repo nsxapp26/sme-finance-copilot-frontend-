@@ -32,7 +32,7 @@ export const HeroAssembly: React.FC = () => {
   const proposalState = useEnvelope<SwarmProposal>(useCallback(() => apiClient.getSwarmProposal(), []));
   const resourceState = useEnvelope<UnlockResource[]>(useCallback(() => apiClient.getUnlockResources(), []));
   const order = orderState.envelope?.data || null;
-  // ไม่มี database -> backend ส่ง proposal เปล่า (ค่า 0 ทั้งหมด) มา ถือว่าไม่มีข้อมูล
+  // No database -> the backend sends an empty proposal (all zeros); treat it as no data
   const proposal = storedProposal(proposalState.envelope);
   const resources = resourceState.envelope?.data || [];
   const amount = (value: number | null | undefined) =>
@@ -51,7 +51,7 @@ export const HeroAssembly: React.FC = () => {
     : truck.status === "confirmed"
     ? t("hero.truckConfirmed", { n: sharedTruckShops })
     : t("hero.truckProposed");
-  // ข้อความเดียวกับ diagram ใหญ่ แค่จัดเรียงใหม่สำหรับจอมือถือ
+  // Same content as the large diagram, rearranged for phone screens
   const mobileFlow: FlowNode[] = [
     { key: "buyer", label: order?.buyerName || t("hero.buyer"), value: order ? t("hero.perDay", { n: order.quantityPerDay }) : t("hero.noOrder"),
       known: Boolean(order), accent: "#60A5FA", target: "swarm", targetLabel: t("hero.openOrder"),
@@ -103,7 +103,7 @@ export const HeroAssembly: React.FC = () => {
             {t("hero.intro")}
           </p>
 
-          {/* Primary CTA Buttons (Part B Rule #9: กดได้ทันทีเสมอ ไม่ต้องรอ animation) */}
+          {/* Primary CTA Buttons (Part B Rule #9: always clickable immediately, never wait for an animation) */}
           <div className="flex flex-wrap items-center gap-3 pt-2">
             <button
               type="button"
@@ -170,10 +170,10 @@ export const HeroAssembly: React.FC = () => {
           </div>
         </div>
 
-        {/* มือถือ: จอแคบเกินกว่าจะวาง diagram แบบเดิม เลยเรียงเป็น flow แนวตั้งแทน */}
+        {/* Phone: too narrow for the diagram, so show a vertical flow instead */}
         <MobileFlow nodes={mobileFlow} animate={!isReducedMotion} onOpen={setCurrentPage} />
 
-        {/* แท็บเล็ต/คอม: diagram แบบ grid (ของเดิมใช้ตำแหน่ง absolute ทำให้การ์ดทับกัน) */}
+        {/* Tablet/desktop: grid diagram (the old absolute positioning made cards overlap) */}
         <div className="lg:col-span-7 hidden sm:block" aria-label={t("hero.diagramLabel")}>
           <div className={`grid grid-cols-[minmax(0,1fr)_28px_minmax(0,1.15fr)_28px_minmax(0,1fr)_28px_minmax(0,1fr)] items-center ${isReducedMotion ? "" : "hero-float"}`}>
             <FlowCard node={nodes.buyer} />
@@ -213,7 +213,7 @@ type FlowNode = {
   valueClass: string;
 };
 
-// การ์ด 1 ช่องใน diagram (row = แบบแนวนอนสำหรับมือถือ)
+// One card in the diagram (row = horizontal layout for phones)
 const FlowCard: React.FC<{ node: FlowNode; row?: boolean; big?: boolean }> = ({ node, row, big }) => (
   <div {...(row ? {} : { "data-tilt": "" })} className={`rounded-xl border transition-all duration-300 ${
     node.alert ? "bg-amber-950/40 border-attention ring-2 ring-attention/70" : big ? "bg-navy-surface border-brand ring-2 ring-brand/40 shadow-glow-primary" : "bg-navy-surface border-navy-border"
@@ -228,12 +228,12 @@ const FlowCard: React.FC<{ node: FlowNode; row?: boolean; big?: boolean }> = ({ 
   </div>
 );
 
-// เส้นเชื่อมระหว่างการ์ด มีจุดวิ่ง (ปิดเมื่อเปิดลดการเคลื่อนไหว)
+// Connector between cards with a moving dot (off when reduced motion is on)
 const FlowLink: React.FC<{ active: boolean; tone?: "normal" | "resource" | "bottleneck"; reverse?: boolean }> = ({ active, tone = "normal", reverse }) => (
   <div aria-hidden="true" className={`flow-link flow-link-${tone} ${active ? "is-active" : ""} ${reverse ? "is-reverse" : ""}`} />
 );
 
-// มือถือ: timeline แนวตั้ง มีรางด้านซ้าย + จุดแสงวิ่งลง แตะการ์ดเพื่อดูคำอธิบาย
+// Phone: vertical timeline with a rail on the left + a glowing dot; tap a card for details
 const MobileFlow: React.FC<{ nodes: FlowNode[]; animate: boolean; onOpen: (page: NavPage) => void }> = ({ nodes, animate, onOpen }) => {
   const [open, setOpen] = useState<string | null>(null);
   const t = useT();
@@ -249,7 +249,7 @@ const MobileFlow: React.FC<{ nodes: FlowNode[]; animate: boolean; onOpen: (page:
       </div>
 
       <ol className="relative pl-9" aria-label={t("hero.flowLabel")}>
-        {/* ราง + จุดแสง */}
+        {/* Rail + glowing dot */}
         <span aria-hidden="true" className="absolute left-[13px] top-4 bottom-4 w-0.5 rounded-full bg-gradient-to-b from-blue-400/60 via-brand/60 to-amber-400/60" />
         {animate && <span aria-hidden="true" className="rail-dot absolute left-[10px] top-4 h-2 w-2 rounded-full bg-white" />}
 
@@ -257,7 +257,7 @@ const MobileFlow: React.FC<{ nodes: FlowNode[]; animate: boolean; onOpen: (page:
           const expanded = open === node.key;
           return (
             <li key={node.key} className="relative mb-2.5 last:mb-0 animate-rise" style={{ animationDelay: `${index * 70}ms` }}>
-              {/* เลขขั้นบนราง */}
+              {/* Step number on the rail */}
               <span aria-hidden="true"
                 className={`absolute -left-9 top-3 flex h-7 w-7 items-center justify-center rounded-full border-2 text-[11px] font-bold transition-all duration-300 ${
                   node.alert ? "border-attention bg-attention text-navy-deep scale-110 shadow-[0_0_12px_rgba(245,154,35,0.7)]"
@@ -290,7 +290,7 @@ const MobileFlow: React.FC<{ nodes: FlowNode[]; animate: boolean; onOpen: (page:
                   <ChevronDown className={`w-4 h-4 shrink-0 text-slate-400 transition-transform duration-300 ${expanded ? "rotate-180" : ""}`} />
                 </button>
 
-                {/* ส่วนที่ขยายเมื่อแตะ (ใช้ grid-rows ให้ความสูงเลื่อนได้นุ่ม ๆ) */}
+                {/* Section that expands on tap (grid-rows gives a smooth height transition) */}
                 <div id={`flow-${node.key}`} className={`grid transition-[grid-template-rows] duration-300 ease-out ${expanded ? "grid-rows-[1fr]" : "grid-rows-[0fr]"}`}>
                   <div className="overflow-hidden">
                     <div className="mx-3 mb-3 border-t border-navy-border pt-2">

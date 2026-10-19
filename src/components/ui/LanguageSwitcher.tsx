@@ -3,7 +3,7 @@ import { Languages } from "lucide-react";
 import { useAppStore } from "@/store/useAppStore";
 import { languageOptions, useT } from "@/i18n";
 
-// ปุ่มเลือกภาษา ไทย / English: compact = แบบย่อ (TH / EN) ไว้ใช้บนแถบด้านบน
+// Thai / English language picker: compact = short form (TH / EN) for the top bar
 export const LanguageSwitcher: React.FC<{ compact?: boolean }> = ({ compact }) => {
   const language = useAppStore((s) => s.language);
   const setLanguage = useAppStore((s) => s.setLanguage);

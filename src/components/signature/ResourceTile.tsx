@@ -54,7 +54,7 @@ export const ResourceTile: React.FC<ResourceTileProps> = ({
           : "bg-white border-borderLine hover:border-resource hover:shadow-soft-md"
       } ${className}`}
     >
-      {/* Cyan/Teal Connecting Terminal (Signature element D4: ขั้วต่อสีฟ้าอมเขียว) */}
+      {/* Cyan/Teal Connecting Terminal (Signature element D4: teal connector) */}
       <span className="absolute -left-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-resource border-2 border-white shadow-sm" />
       <span className="absolute -right-1.5 top-1/2 -translate-y-1/2 w-3 h-3 rounded-full bg-resource border-2 border-white shadow-sm" />
 

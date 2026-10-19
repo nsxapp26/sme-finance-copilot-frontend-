@@ -142,7 +142,7 @@ export const FundingPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Top Summary Banner: ต้องใช้ / มีใช้ได้ / ยังขาด / ต้องใช้วันไหน */}
+        {/* Top Summary Banner: needed / available / shortfall / needed by */}
         <div data-tilt className="grid grid-cols-2 md:grid-cols-4 gap-3 bg-white p-4 rounded-card border border-borderLine shadow-soft-sm">
           <div>
             <span className="text-[10px] text-ink-muted block uppercase tracking-wider">

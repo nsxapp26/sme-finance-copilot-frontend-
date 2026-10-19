@@ -1,17 +1,17 @@
-// คำแปลภาษาอังกฤษของ "ข้อมูล" ที่เก็บเป็นภาษาไทยในฐานข้อมูล (ชื่อออเดอร์ ทรัพยากร รายการเงินสด ฯลฯ)
-// ปุ่ม TH/EN แปลแค่ข้อความในหน้าเว็บ (src/i18n) ส่วนข้อมูลจาก API จะผ่านไฟล์นี้ตอนเลือก EN
+// English renderings of *data* stored in Thai in the database (order titles, resources, cash events, etc.).
+// The TH/EN switch translates UI text via src/i18n; API data goes through this file in English mode.
 //
-// กติกา:
-//   - แปลเฉพาะข้อความที่มีอยู่ในรายการนี้ ข้อความที่ไม่รู้จักแสดงตามเดิม (ไม่เดาคำแปล)
-//   - ตัวเลขในข้อความใช้ค่าจากข้อมูลจริงเสมอ (กติกาแบบ regex ด้านล่างแค่ย้ายตัวเลขไปวางในประโยคอังกฤษ)
-//   - ไม่แตะ id, order_ref หรือค่าที่ไม่มีอักษรไทย
-// ข้อมูลใหม่ที่ผู้ใช้กรอกเพิ่มจะยังเป็นภาษาไทย ถ้าต้องการให้แปลได้ทั้งหมดต้องเก็บสองภาษาในฐานข้อมูล
+// Rules:
+//   - Only text listed here is translated; unknown text is shown unchanged (no guessed translations).
+//   - Numbers always come from the record itself (the regex rules below only move them into the English sentence).
+//   - IDs, order_ref, and values without Thai characters are never touched.
+// New records entered later stay in Thai; full coverage would need both languages stored in the database.
 
 const exact: Record<string, string> = {
-  // ออเดอร์
+  // Order
   "ศูนย์กระจายสินค้า ลาดกระบัง": "Lat Krabang Distribution Center",
   "มัดจำ 20% ชำระส่วนที่เหลือเครดิต 30 วันหลังส่งมอบ": "20% deposit, balance on 30-day credit after delivery",
-  // ร้านในกลุ่ม
+  // Shops in the group
   "ครัวกลางอาหารพร้อมทาน": "Ready-meal central kitchen",
   "โรงงานแปรรูปขนาดเล็ก": "Small processing plant",
   "บรรจุภัณฑ์และแพ็กกิ้ง": "Packaging and packing",
@@ -28,12 +28,12 @@ const exact: Record<string, string> = {
   "ต้องการเงินทุนหมุนเวียน": "Needs working capital",
   "บรรจุภัณฑ์รักษ์โลก": "Eco-friendly packaging",
   "ซีลสูญญากาศ": "Vacuum sealing",
-  // แหล่งเงินทุน
+  // Funding sources
   "สินเชื่อระยะยาว": "Long-term loan",
   "สินเชื่อตามใบสั่งซื้อ": "Purchase-order financing",
   "ขายลดลูกหนี้การค้า": "Invoice factoring",
   "เงินให้เปล่า/ทุนสนับสนุน": "Grant / support fund",
-  // ทรัพยากร UNLOCK
+  // UNLOCK resources
   "ครัวกลางมาตรฐาน GMP พร้อมห้องเย็น": "GMP central kitchen with cold room",
   "ครัวกลาง": "Central kitchen",
   "เครื่องซีลสูญญากาศกำลังสูง": "High-capacity vacuum sealer",
@@ -49,7 +49,7 @@ const exact: Record<string, string> = {
   "ไม่มีครัวมาตรฐานของตัวเอง ต้องเช่าใช้": "Has no certified kitchen of its own and must rent one",
   "ต้องใช้รถห้องเย็นร่วมกัน": "Shares the refrigerated truck",
   "ถ้ามีเครื่องซีลจะเร็วขึ้น แต่แพ็กมือได้": "Faster with the sealer, but can pack by hand",
-  // รายการเงินสด
+  // Cash events
   "รับเงินมัดจำ 20% จากผู้ซื้อ": "Receive 20% deposit from buyer",
   "มัดจำตามสัญญา PO-STP-2026-091": "Deposit under contract PO-STP-2026-091",
   "ซื้อวัตถุดิบล็อตแรก": "Buy first batch of ingredients",
@@ -65,7 +65,7 @@ const exact: Record<string, string> = {
   "ครบกำหนดส่งมอบตามสัญญา": "Delivery due under the contract",
   "รับชำระส่วนที่เหลือ 80%": "Receive remaining 80% payment",
   "เครดิต 30 วันหลังส่งมอบ": "30-day credit after delivery",
-  // ต้นทุน
+  // Costs
   "ต้นทุนขาย (COGS)": "Cost of goods sold (COGS)",
   "ค่าใช้จ่ายดำเนินงาน": "Operating expenses",
   "ดอกเบี้ยจ่าย": "Interest expense",
@@ -73,7 +73,7 @@ const exact: Record<string, string> = {
   "ค่าแรง": "Labor",
   "วัตถุดิบ": "Ingredients",
   "สาธารณูปโภค": "Utilities",
-  // สินค้าและช่องทางขาย
+  // Products and sales channels
   "ข้าวกล่องแกงเขียวหวานไก่": "Green curry chicken rice box",
   "ข้าวกล่องผัดกะเพราหมู": "Stir-fried basil pork rice box",
   "ชุดอาหารเช้าพร้อมทาน": "Ready-to-eat breakfast set",
@@ -83,7 +83,7 @@ const exact: Record<string, string> = {
   "แพลตฟอร์มเดลิเวอรี": "Delivery platforms",
   "ขายตรงหน้าร้าน": "In-store sales",
   "ขายส่งให้ร้านค้า": "Wholesale to retailers",
-  // ผู้ให้ทุน / โครงการ
+  // Funders / projects
   "เงินทุนหมุนเวียนซื้อวัตถุดิบและค่าแรงช่วงผลิต": "Working capital for ingredients and wages during production",
   "ยังไม่ครบ": "Incomplete",
   "ใบสั่งซื้อจากผู้ซื้อ (PO)": "Buyer purchase order (PO)",
@@ -91,7 +91,7 @@ const exact: Record<string, string> = {
   "สัญญาขนส่งควบคุมอุณหภูมิ": "Temperature-controlled transport contract",
   "ตรวจแล้ว 2 จาก 3 ฉบับ พิจารณาวงเงินบางส่วนได้": "2 of 3 documents verified; a partial credit line can be considered",
   "พร้อมเริ่มงาน": "Ready to start",
-  // สถานการณ์ Chaos
+  // Chaos scenarios
   "ผู้ซื้อเลื่อนชำระออกไป 30 วัน": "Buyer delays payment by 30 days",
   "ผู้ซื้อขอขยายเครดิตจาก 30 วันเป็น 60 วัน ทำให้เงินเข้าช้ากว่ากำหนดหนึ่งงวดเต็ม": "The buyer extends credit from 30 to 60 days, so cash arrives one full cycle late",
   "จับคู่สินเชื่อ invoice financing": "Match invoice financing",
@@ -114,7 +114,7 @@ const exact: Record<string, string> = {
   "ลดผลกระทบได้ประมาณ 40% ของส่วนต่างราคา": "Offsets about 40% of the price increase",
 };
 
-// ข้อความที่มีตัวเลขเปลี่ยนไปตามข้อมูล: จับตัวเลขเดิมแล้ววางในประโยคอังกฤษ
+// Text whose numbers vary by record: capture the numbers and place them in the English sentence
 const patterns: [RegExp, (...groups: string[]) => string][] = [
   [/^ออเดอร์อาหารพร้อมทาน ([\d,]+) กล่อง\/วัน (\d+) วัน$/, (n, d) => `Ready-meal order: ${n} boxes/day for ${d} days`],
   [/^ผ่อนเดือนละ ([\d,.]+) บาท เป็นเวลา (\d+) เดือน เงินเข้าบัญชีภายใน (\d+) วัน$/, (m, n, d) => `Pay ฿${m} a month for ${n} months · funds arrive within ${d} days`],
@@ -128,9 +128,9 @@ const patterns: [RegExp, (...groups: string[]) => string][] = [
   [/^ว่าง (\d+)–(\d+) พ\.ย\. (\d{4})$/, (a, b, y) => `Available ${a}–${b} Nov ${y}`],
 ];
 
-// ชื่อสิ่งของที่อาจโผล่อยู่กลางประโยคภาษาอังกฤษจากระบบ เช่น "Required resource unavailable: ... (รถห้องเย็น ...)"
+// Names that can appear inside English system messages, e.g. "Required resource unavailable: ... (<Thai resource name>)"
 const fragments = Object.keys(exact).sort((a, b) => b.length - a.length);
-const HAS_THAI = /[ก-ฺเ-๛]/;
+const HAS_THAI = /[\u0E01-\u0E3A\u0E40-\u0E5B]/;
 
 export function translateText(text: string): string {
   if (!HAS_THAI.test(text)) return text;
@@ -140,7 +140,7 @@ export function translateText(text: string): string {
     const match = trimmed.match(pattern);
     if (match) return build(...match.slice(1));
   }
-  // แทนทีละคำเฉพาะข้อความภาษาอังกฤษจากระบบที่มีชื่อภาษาไทยแทรกอยู่ ประโยคไทยล้วนที่ไม่รู้จักปล่อยไว้ตามเดิม
+  // Replace pieces only inside English system messages that embed Thai names; unknown all-Thai text is left as is
   if (!/[A-Za-z]{3,}/.test(text)) return text;
   let result = text;
   for (const piece of fragments) {
@@ -149,7 +149,7 @@ export function translateText(text: string): string {
   return result;
 }
 
-// คัดลอกข้อมูลทั้งก้อนแล้วแปลเฉพาะข้อความ (ไม่แก้ object เดิม เพราะ cache ใช้ร่วมกันทั้งภาษาไทยและอังกฤษ)
+// Deep-copy and translate strings only (never mutate the original, because the cache is shared by both languages)
 export function translateData<T>(value: T): T {
   if (typeof value === "string") return translateText(value) as T;
   if (Array.isArray(value)) return value.map((item) => translateData(item)) as T;

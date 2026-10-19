@@ -23,7 +23,7 @@ export type MotionIntensity = "full" | "reduced" | "off";
 export type Language = "en" | "th";
 const LANGUAGE_KEY = "sme-copilot-language";
 
-// จำภาษาที่เลือกไว้ในเครื่อง (ถ้า storage ใช้ไม่ได้ก็ใช้ภาษาอังกฤษไป)
+// Remember the chosen language on this device (fall back to English if storage is unavailable)
 function readLanguage(): Language {
   try {
     const saved = localStorage.getItem(LANGUAGE_KEY);

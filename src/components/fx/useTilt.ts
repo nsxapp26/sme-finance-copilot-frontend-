@@ -1,6 +1,6 @@
-// การ์ดเอียง 3 มิติตามเมาส์ ใช้ตัวเดียวทั้งแอป (event delegation)
-// การ์ดไหนอยากให้เอียง ใส่ attribute data-tilt ก็พอ
-// ไม่ทำงานบนจอสัมผัส และไม่ทำงานเมื่อเปิดลดการเคลื่อนไหว
+// 3D card tilt that follows the mouse; one handler for the whole app (event delegation)
+// Add the data-tilt attribute to any card that should tilt
+// Disabled on touch screens and when reduced motion is on
 import { useEffect } from "react";
 
 const MAX_DEG = 7;
@@ -22,7 +22,7 @@ export function useTilt(disabled: boolean) {
 
     const onMove = (event: PointerEvent) => {
       if (event.pointerType !== "mouse") return;
-      // การ์ดที่มี data-tilt เอง หรือการ์ดลูกของ grid ที่มี data-tilt-grid
+      // A card with data-tilt, or a direct child of a grid with data-tilt-grid
       const el = (event.target as Element | null)?.closest<HTMLElement>("[data-tilt], [data-tilt-grid] > *") ?? null;
       if (current && current !== el) reset(current);
       current = el;
@@ -32,7 +32,7 @@ export function useTilt(disabled: boolean) {
         const rect = el.getBoundingClientRect();
         const px = (event.clientX - rect.left) / rect.width; // 0..1
         const py = (event.clientY - rect.top) / rect.height;
-        // การ์ดใหญ่เอียงน้อยลง จะได้ไม่ดูเวียนหัว
+        // Large cards tilt less so it doesn't feel dizzying
         const deg = MAX_DEG * Math.min(1, 280 / Math.max(rect.width, 1));
         el.style.setProperty("--ry", `${((px - 0.5) * 2 * deg).toFixed(2)}deg`);
         el.style.setProperty("--rx", `${((0.5 - py) * 2 * deg).toFixed(2)}deg`);

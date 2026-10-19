@@ -91,7 +91,7 @@ export const SimulatorPage: React.FC = () => {
       }).catch((err) => { setError(err.message); setLoading(false); });
   };
   useEffect(loadData, []);
-  // สลับภาษาแล้วดึงสถานการณ์ Chaos ใหม่อย่างเดียว (ค่าที่กรอกจำลองไว้ไม่หาย)
+  // On a language change, refetch only the chaos scenarios (simulation inputs are kept)
   const firstLanguage = useRef(language);
   useEffect(() => {
     if (language === firstLanguage.current) return;
@@ -220,7 +220,7 @@ export const SimulatorPage: React.FC = () => {
           effectsReason={chaosEffects.reason}
         />
 
-        {/* Side-by-Side Comparison: แผนเดิม (Plan A) vs แผนจำลอง (Plan B) */}
+        {/* Side-by-Side Comparison: current plan (Plan A) vs simulated plan (Plan B) */}
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           {/* Simulation Controls (Left 6 Cols) */}
           <div className="lg:col-span-6 bg-white p-5 rounded-card border border-borderLine shadow-soft-sm space-y-4">

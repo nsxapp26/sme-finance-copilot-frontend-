@@ -9,11 +9,11 @@ type Props = {
   persisted?: boolean;
   source?: string;
   asOf?: string;
-  // true = ฟอร์มถูกแก้หลังจากคำนวณ ผลที่แสดงอยู่ไม่ตรงกับฟอร์มแล้ว
+  // true = the form was edited after calculating, so the shown result no longer matches it
   outdated?: boolean;
 };
 
-// ป้ายบอกว่าผลนี้เป็นข้อมูลจำลอง ไม่ได้บันทึก ใช้ร่วมกันใน Cash และ Sales preview
+// Banner stating the result is simulated and not saved; shared by the Cash and Sales previews
 export const SimulatedNotice: React.FC<Props> = ({ kind, persisted, source, asOf, outdated }) => {
   const t = useT();
   return (

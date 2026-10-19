@@ -224,7 +224,7 @@ export const AppHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* เลือกภาษา (มือถืออยู่ในเมนู More) */}
+        {/* Language picker (on phones it is in the More menu) */}
         <div className="hidden sm:block">
           <LanguageSwitcher compact />
         </div>

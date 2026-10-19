@@ -4,8 +4,8 @@ import { useT } from "@/i18n";
 
 export type ProfitBar = {
   label: string;
-  value: number; // กำไร/ขาดทุนที่ backend คืนมา
-  detail: string; // เช่น margin หรือยอดขาย (แสดงใน tooltip)
+  value: number; // profit/loss returned by the backend
+  detail: string; // e.g. margin or sales (shown in the tooltip)
 };
 
 type Props = { title: string; bars: ProfitBar[] };
@@ -14,7 +14,7 @@ const BRAND = "#6C4CF1";
 const DANGER = "#E5484D";
 const MUTED = "#5B678A";
 
-// กราฟแท่งแนวนอน มีเส้น 0 ตรงกลางถ้ามีขาดทุน กำไรไปขวา ขาดทุนไปซ้าย
+// Horizontal bar chart: zero line in the middle when there are losses; profit goes right, loss goes left
 export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
   const { ref, width } = useChartWidth<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
@@ -33,7 +33,7 @@ export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
   const maxPos = Math.max(0, ...bars.map((b) => b.value));
   const maxNeg = Math.max(0, ...bars.map((b) => -b.value));
   const span = maxPos + maxNeg || 1;
-  // ตำแหน่งเส้น 0 (ถ้าไม่มีขาดทุนเลย เส้น 0 อยู่ซ้ายสุด)
+  // Position of the zero line (far left when nothing is a loss)
   const zeroX = plotLeft + valueW + (maxNeg / span) * plotW;
   const scale = plotW / span;
 
@@ -57,7 +57,7 @@ export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
             const loss = bar.value < 0;
             const x0 = loss ? zeroX - w : zeroX;
             const r = Math.min(4, w / 2);
-            // มุมโค้งเฉพาะปลายแท่ง ฝั่งเส้น 0 เป็นมุมฉาก
+            // Round only the bar's outer end; the zero-line side stays square
             const d = loss
               ? `M${zeroX},${cy - barH / 2} H${x0 + r} Q${x0},${cy - barH / 2} ${x0},${cy - barH / 2 + r} V${cy + barH / 2 - r} Q${x0},${cy + barH / 2} ${x0 + r},${cy + barH / 2} H${zeroX} Z`
               : `M${zeroX},${cy - barH / 2} H${zeroX + w - r} Q${zeroX + w},${cy - barH / 2} ${zeroX + w},${cy - barH / 2 + r} V${cy + barH / 2 - r} Q${zeroX + w},${cy + barH / 2} ${zeroX + w - r},${cy + barH / 2} H${zeroX} Z`;
@@ -75,7 +75,7 @@ export const ProfitBarChart: React.FC<Props> = ({ title, bars }) => {
                 onBlur={() => setActive(null)}
                 className="cursor-default outline-none"
               >
-                {/* พื้นที่กดใหญ่กว่าแท่งจริง */}
+                {/* Hit area larger than the bar itself */}
                 <rect x={0} y={cy - row / 2} width={width} height={row} fill={active === i ? "#F4F1EA" : "transparent"} rx="8" />
                 <text x={labelW - 8} y={cy} dy="0.32em" textAnchor="end" fontSize="11" fill="#14224A" fontWeight="600">
                   {bar.label.length > (narrow ? 12 : 20) ? `${bar.label.slice(0, narrow ? 11 : 19)}…` : bar.label}

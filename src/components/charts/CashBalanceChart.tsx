@@ -6,7 +6,7 @@ import { useAppStore } from "@/store/useAppStore";
 
 type Props = {
   asOf: string;
-  // ยอดตั้งต้นที่ผู้ใช้กรอกเอง (จุดแรกของกราฟ)
+  // Opening balance entered by the user (the first point of the chart)
   openingCash: number;
   days: CashflowDay[];
 };
@@ -19,12 +19,12 @@ const GRID = "#ECE7DC";
 const MUTED = "#5B678A";
 
 const toTime = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
-// ชื่อเดือนตามภาษาที่เลือก (แสดงแค่วัน+เดือน)
+// Month names in the selected language (day + month only)
 const localeFor = { en: "en-US", th: "th-TH" } as const;
 const shortDate = (iso: string, lang: keyof typeof localeFor) =>
   new Date(toTime(iso)).toLocaleDateString(localeFor[lang], { day: "numeric", month: "short", timeZone: "UTC" });
 
-// กราฟยอดเงินสดแบบขั้นบันได (ยอดเปลี่ยนเฉพาะวันที่มีรายการ) ใช้ค่าที่ backend คืนมาเท่านั้น
+// Step chart of the cash balance (changes only on days with events); uses backend values only
 export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) => {
   const { ref, width } = useChartWidth<HTMLDivElement>();
   const [active, setActive] = useState<number | null>(null);
@@ -58,7 +58,7 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
   const x = (iso: string) => pad.left + ((toTime(iso) - t0) / (t1 - t0)) * innerW;
   const y = (v: number) => pad.top + (1 - (v - yMin) / (yMax - yMin)) * innerH;
 
-  // เส้นแบบ step: ลากแนวนอนไปจนถึงวันถัดไปแล้วค่อยขึ้น/ลง
+  // Step line: run horizontally to the next day, then move up/down
   let path = `M${x(points[0].date)},${y(points[0].value)}`;
   for (let i = 1; i < points.length; i += 1) {
     path += ` H${x(points[i].date)} V${y(points[i].value)}`;
@@ -66,10 +66,10 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
   const lastX = x(points[points.length - 1].date);
   const areaPath = `${path} V${y(yMin)} H${x(points[0].date)} Z`;
 
-  // label เฉพาะจุดต่ำสุด กับจุดสุดท้าย (ไม่ใส่ตัวเลขทุกจุด)
+  // Label only the lowest and the last point (not every point)
   const lowestIndex = points.reduce((low, p, i) => (p.value < points[low].value ? i : low), 0);
   const lastIndex = points.length - 1;
-  // เลือกวันที่บนแกน x ไม่ให้ตัวหนังสือชนกัน (เว้นอย่างน้อย ~56px)
+  // Pick x-axis dates so labels don't collide (at least ~56px apart)
   const dateTicks: Point[] = [];
   points.forEach((p, i) => {
     const prev = dateTicks[dateTicks.length - 1];
@@ -115,7 +115,7 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
             if (e.key === "Escape") setActive(null);
           }}
         >
-          {/* gridline + tick แกน y */}
+          {/* Gridlines + y-axis ticks */}
           {ticks.map((t) => (
             <g key={t}>
               <line x1={pad.left} x2={width - pad.right} y1={y(t)} y2={y(t)} stroke={t === 0 ? "#C9C2B2" : GRID} strokeWidth="1" />
@@ -123,13 +123,13 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
             </g>
           ))}
 
-          {/* โซนต่ำกว่าเงินสำรอง */}
+          {/* Zone below the cash reserve */}
           {reserve > yMin && (
             <rect x={pad.left} width={innerW} y={y(reserve)} height={y(yMin) - y(reserve)} fill={DANGER} fillOpacity="0.07" />
           )}
           <line x1={pad.left} x2={width - pad.right} y1={y(reserve)} y2={y(reserve)} stroke={MUTED} strokeWidth="1.5" strokeDasharray="4 3" />
 
-          {/* พื้นที่ใต้เส้นจาง ๆ + เส้นหลักที่ค่อย ๆ วาด */}
+          {/* Faint area under the line + main line that draws in */}
           <path d={areaPath} fill={BRAND} fillOpacity="0.1" className="animate-fade-in" />
           <path d={path} fill="none" stroke={BRAND} strokeWidth="2" strokeLinejoin="round" strokeLinecap="round" pathLength={1} className="chart-draw" />
 
@@ -150,7 +150,7 @@ export const CashBalanceChart: React.FC<Props> = ({ asOf, openingCash, days }) =
             />
           ))}
 
-          {/* label ที่จุดต่ำสุดและจุดสุดท้าย */}
+          {/* Labels at the lowest and last points */}
           {[lowestIndex, lastIndex].filter((v, i, arr) => arr.indexOf(v) === i).map((i) => {
             const p = points[i];
             const nearRight = x(p.date) > width - 90;

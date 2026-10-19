@@ -84,7 +84,7 @@ export const CommandPalette: React.FC = () => {
   // returned. Each record carries its own UUID and its own figures.
   const money = (value: number) => `฿${value.toLocaleString("en-US", { maximumFractionDigits: 0 })}`;
   const catalogue: SearchResultItem[] = [
-    // ชื่อเมนูแปลตามภาษา (ค้นหาได้ทั้งภาษาที่เลือก)
+    // Menu names follow the selected language (searchable in that language)
     ...searchableMenu.map((item) => ({
       ...item,
       title: t(`cmd.${item.id}.title` as TranslationKey),

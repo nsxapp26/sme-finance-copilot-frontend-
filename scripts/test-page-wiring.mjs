@@ -67,6 +67,6 @@ assert.equal(JSON.stringify(context.data), before);
 await assert.rejects(client.simulateOrder(context.data, {...scenario,payment_terms_days:1.5}), /payment_terms_days/);
 const demo = await load(true);
 assert.equal((await demo.getSwarmProposal()).source, 'demo_dataset');
-await assert.rejects(demo.assembleSwarm(context.data), /โหมดตัวอย่าง/);
-await assert.rejects(demo.simulateOrder(context.data, scenario, true), /โหมดตัวอย่าง/);
+await assert.rejects(demo.assembleSwarm(context.data), /Demo mode/);
+await assert.rejects(demo.simulateOrder(context.data, scenario, true), /Demo mode/);
 console.log('PASS: sixteen page style guards, real order context, SWARM resource exclusion, four simulation controls, source/missing, validation, demo write rejection');

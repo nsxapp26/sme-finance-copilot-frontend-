@@ -90,7 +90,7 @@ export const LinkLine: React.FC<LinkLineProps> = ({
         className={config.animationClass}
       />
 
-      {/* Flowing Laser Photon (Signature element D4: ลำแสงวิ่งตามเส้น) */}
+      {/* Flowing Laser Photon (Signature element D4: light pulse running along the line) */}
       {isActive && pulsePhoton && (
         <circle r="4" fill={config.photonColor} className="filter drop-shadow-md">
           <animateMotion

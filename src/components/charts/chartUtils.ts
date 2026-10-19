@@ -1,7 +1,7 @@
-// ของใช้ร่วมกันสำหรับกราฟ SVG (แค่จัดรูปแบบ/สเกล ไม่ได้คำนวณตัวเลขการเงิน)
+// Shared helpers for the SVG charts (formatting/scaling only; no financial calculations)
 import { useEffect, useRef, useState } from "react";
 
-// วัดความกว้างกล่อง เพื่อให้กราฟปรับตามจอ (มือถือ/แท็บเล็ต/คอม)
+// Measure the container width so charts adapt to phone/tablet/desktop
 export function useChartWidth<T extends HTMLElement>(fallback = 640) {
   const ref = useRef<T>(null);
   const [width, setWidth] = useState(fallback);
@@ -20,7 +20,7 @@ export function useChartWidth<T extends HTMLElement>(fallback = 640) {
   return { ref, width };
 }
 
-// ตัวเลขแกนแบบสั้น 0 / 10K / 1.2M
+// Short axis numbers: 0 / 10K / 1.2M
 export function compactBaht(value: number): string {
   const abs = Math.abs(value);
   const sign = value < 0 ? "-" : "";
@@ -34,7 +34,7 @@ function trim(n: number) {
 
 export const fullBaht = (value: number) => `${value < 0 ? "-" : ""}฿${Math.abs(value).toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 
-// หา tick สวย ๆ ให้แกน (1, 2, 5 x 10^n)
+// Nice axis ticks (1, 2, 5 x 10^n)
 export function niceTicks(min: number, max: number, count = 4): number[] {
   if (min === max) { min -= 1; max += 1; }
   const raw = (max - min) / count;

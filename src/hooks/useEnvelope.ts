@@ -54,7 +54,7 @@ export type EnvelopeState<T> = {
  */
 export function useEnvelope<T>(load: () => Promise<Envelope<T>>, deps: unknown[] = []): EnvelopeState<T> {
   const epoch = useAnalysisEpoch();
-  // เปลี่ยนภาษาแล้วโหลดใหม่ ข้อมูลจากฐานข้อมูลจะได้แปลตาม (ข้อมูลอยู่ใน cache จึงไม่ต้องรอ API)
+  // Reload on a language change so database text is re-translated (served from the cache, no API wait)
   const language = useAppStore((state) => state.language);
   const [envelope, setEnvelope] = useState<Envelope<T> | null>(null);
   const [loading, setLoading] = useState(true);

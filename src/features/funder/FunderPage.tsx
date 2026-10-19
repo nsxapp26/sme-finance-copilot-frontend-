@@ -82,8 +82,8 @@ export const FunderPage: React.FC = () => {
     );
   }
 
-  // ไม่มี endpoint ไหนส่งยอดรวมงบมาให้ จึงไม่บวก/ลบเงินเองใน React
-  // แสดงแค่จำนวนโครงการที่เลือก และยอดเป้าหมายของแต่ละโครงการตามที่ backend ส่งมา
+  // No endpoint provides a budget total, so we don't add or subtract money in React
+  // Show only the number of selected projects and each project's target as sent by the backend
   const selectedProjects = projects.filter((proj) => selectedProjectIds.includes(proj.id));
   const selectedShare = projects.length ? (selectedProjects.length / projects.length) * 100 : 0;
 
@@ -218,7 +218,7 @@ export const FunderPage: React.FC = () => {
                       </div>
                     </div>
 
-                    {/* Funder Recommendation Decision (Rule: รองรับ 3 สถานะ) */}
+                    {/* Funder Recommendation Decision (Rule: supports 3 states) */}
                     <div
                       className={`p-2.5 rounded-xl text-xs border leading-relaxed mb-3 ${
                         proj.recommendationDecision === "recommend"

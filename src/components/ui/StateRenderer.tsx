@@ -14,7 +14,7 @@ import {
   ShieldAlert,
 } from "lucide-react";
 
-// แปลง error ที่เจอบ่อยให้คนทั่วไปอ่านแล้วรู้ว่าต้องทำอะไรต่อ
+// Turn common errors into plain messages that tell people what to do next
 function errorHint(message: string): string {
   if (/\b422\b|invalid|must be/i.test(message)) return tr("stateR.hint422");
   if (/\b413\b|too large|larger than/i.test(message)) return tr("stateR.hint413");
@@ -39,7 +39,7 @@ interface StateRendererProps {
 
 export const StateRenderer: React.FC<StateRendererProps> = ({
   currentMode,
-  // ห้ามมีค่า default ที่แต่งขึ้น ถ้าหน้าไม่ส่งมาก็คือไม่รู้ว่าขาดอะไร
+  // No invented defaults: if the page passes nothing, we don't know what is missing
   missingItems = [],
   errorMessage,
   unavailableReason,

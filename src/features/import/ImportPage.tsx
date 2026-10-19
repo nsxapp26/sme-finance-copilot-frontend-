@@ -228,7 +228,7 @@ export const ImportPage: React.FC = () => {
         </div>
       </div>
 
-      {/* สถานะผลวิเคราะห์ล่าสุด + ปุ่มไปขั้นตอนถัดไป */}
+      {/* Latest analysis status + button to the next step */}
       {accepted && (
         <div role="status" className={`animate-rise p-4 rounded-card border flex flex-col md:flex-row md:items-center justify-between gap-3 ${stale ? "bg-amber-50 border-amber-300" : "bg-emerald-50 border-emerald-200"}`}>
           <div className="text-xs space-y-0.5">

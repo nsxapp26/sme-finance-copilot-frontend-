@@ -7,7 +7,7 @@ import { tr, useT } from "@/i18n";
 import { ProfitBarChart } from "@/components/charts/ProfitBarChart";
 import { Calculator, PackagePlus, Store, Trash2, Loader2 } from "lucide-react";
 
-// เก็บเป็น string ทั้งหมดก่อน ช่องว่าง = ยังไม่ได้กรอก (ห้ามแปลงเป็น 0)
+// Keep everything as strings; an empty field means not entered yet (never convert it to 0)
 type ProductRow = { name: string; category: string; unitsSold: string; revenue: string; cost: string; turnoverDays: string };
 type ChannelRow = SalesPreviewInput["channels"][number];
 
@@ -19,7 +19,7 @@ const isWhole = (value: string) => /^\d+$/.test(value.trim()) && Number.isSafeIn
 const baht = (value: number | null | undefined) =>
   value == null ? tr("common.noData") : `฿${value.toLocaleString("en-US", { maximumFractionDigits: 2 })}`;
 const percent = (value: number | null | undefined) => (value == null ? tr("common.noData") : `${value}%`);
-// ยอดขายเป็น 0 -> margin หาไม่ได้ (หารด้วย 0) แต่ backend ส่ง 0 มา เลยแสดงว่าคำนวณไม่ได้แทน
+// Zero sales -> margin is undefined (division by zero), but the backend sends 0, so show 'cannot calculate' instead
 const marginText = (margin: number | null | undefined, base: number) => (base === 0 ? tr("salesForm.marginUndefined") : percent(margin));
 
 const stagger = (index: number) => ({ animationDelay: `${Math.min(index, 8) * 50}ms` });
@@ -34,7 +34,7 @@ export const SalesPreviewForm: React.FC = () => {
   const [serverError, setServerError] = useState("");
   const [result, setResult] = useState<(Awaited<ReturnType<typeof apiClient.previewSales>>) | null>(null);
   const [changedAfterRun, setChangedAfterRun] = useState(false);
-  // นับจำนวนครั้งที่คำนวณ ใช้เป็น key ให้ animation เล่นใหม่ทุกครั้ง
+  // Count calculations and use it as a key so the animation replays each time
   const [resultKey, setResultKey] = useState(0);
   const { running, run } = useSingleFlight();
 

@@ -131,7 +131,7 @@ const groupKey: Record<NavItem["group"], TranslationKey> = {
   "Build Opportunities & Teams": "navGroup.opportunities",
   "Sandbox & Reports": "navGroup.sandbox",
 };
-// badge ที่เป็นข้อความตายตัว แปลตาม key
+// Fixed-text badges, translated by key
 const badgeKey: Partial<Record<NavPage, TranslationKey>> = {
   cashflow: "navBadge.timeTravel",
   swarm: "navBadge.featured",
@@ -155,7 +155,7 @@ export const AppSidebar: React.FC = () => {
   const proposalState = useEnvelope<SwarmProposal>(useCallback(() => apiClient.getSwarmProposal(), []));
   const order = orderState.envelope?.data || null;
   const shops = shopState.envelope?.data || [];
-  // ไม่มี database -> backend ส่ง proposal เปล่า (ค่า 0 ทั้งหมด) มา ถือว่าไม่มีข้อมูล
+  // No database -> the backend sends an empty proposal (all zeros); treat it as no data
   const proposal = storedProposal(proposalState.envelope);
   const shortfallShops = proposal ? proposal.shops.filter((shop) => shop.fundingGap > 0).length : 0;
   const fundingBadge = proposal && proposal.totalFundingGap > 0

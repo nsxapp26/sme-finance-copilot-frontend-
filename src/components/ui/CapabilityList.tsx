@@ -3,7 +3,7 @@ import { CheckCircle2, CircleSlash, RefreshCw } from "lucide-react";
 import { CapabilityName, useCapabilities } from "@/hooks/useCapabilities";
 import { TranslationKey, useT } from "@/i18n";
 
-// ชื่อที่อ่านง่ายของแต่ละ capability ใน GET /capabilities
+// Readable names for each capability in GET /capabilities
 const labels: Record<CapabilityName, TranslationKey> = {
   deterministicAnalysis: "cap.deterministicAnalysis",
   orderPreview: "cap.orderPreview",
@@ -17,7 +17,7 @@ const labels: Record<CapabilityName, TranslationKey> = {
   arbitraryChaosEffects: "cap.arbitraryChaosEffects",
 };
 
-// แสดงว่าฟีเจอร์ไหน backend รองรับจริง อันไหนยังไม่รองรับ (ตามที่ server ตอบ)
+// Shows which features the backend actually supports and which it doesn't (as reported by the server)
 export const CapabilityList: React.FC = () => {
   const { capabilities, loading, error, reload, reasonFor } = useCapabilities();
   const t = useT();

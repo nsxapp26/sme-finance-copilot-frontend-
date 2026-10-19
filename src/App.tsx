@@ -6,7 +6,7 @@ import { CommandPalette } from "@/components/ui/CommandPalette";
 import { MobileDrawer } from "@/components/ui/MobileDrawer";
 
 // Keep the first download small; Vite fetches each workspace only when opened.
-// เก็บตัวโหลดไว้ในตัวแปร จะได้เอาไปโหลดล่วงหน้าตอนเครื่องว่างได้ (ดู prefetchPages ด้านล่าง)
+// Keep the loaders in one object so they can also be prefetched while idle (see prefetchPages below).
 const loaders = {
   overview: () => import("@/features/overview/OverviewPage"),
   import: () => import("@/features/import/ImportPage"),
@@ -40,15 +40,15 @@ const ProjectsPage = React.lazy(() => loaders.projects().then((page) => ({ defau
 const AIPanel = React.lazy(() => loaders.aiPanel().then((panel) => ({ default: panel.AIPanel })));
 const StoryModeModal = React.lazy(() => import("@/features/reports/StoryModeModal").then((modal) => ({ default: modal.StoryModeModal })));
 
-// หลังหน้าแรกขึ้นแล้ว ค่อย ๆ โหลดไฟล์ของหน้าอื่นไว้ก่อนตอนเครื่องว่าง
-// กดเมนูทีหลังจะได้เปิดทันที ไม่ต้องรอดาวน์โหลด (ถ้าเปิดประหยัดเน็ตไว้จะไม่โหลด)
+// After the first page is shown, load the other pages' bundles while the browser is idle,
+// so opening a menu later is instant. Skipped when Save-Data is on.
 function prefetchPages() {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean } }).connection;
   if (connection?.saveData) return;
   const queue = Object.values(loaders);
   const idle = (cb: () => void) => {
     if (typeof window.requestIdleCallback === "function") window.requestIdleCallback(cb, { timeout: 3000 });
-    else setTimeout(cb, 300); // Safari ไม่มี requestIdleCallback
+    else setTimeout(cb, 300); // Safari has no requestIdleCallback
   };
   const next = () => {
     const load = queue.shift();
@@ -85,9 +85,9 @@ export const App: React.FC = () => {
 
   const t = useT();
   const language = useAppStore((st) => st.language);
-  // การ์ดที่มี data-tilt จะเอียงตามเมาส์ (ปิดเมื่อเปิดลดการเคลื่อนไหว)
+  // Cards with data-tilt follow the mouse (off when reduced motion is on)
   useTilt(isReducedMotion);
-  // ให้ <html lang> ตรงกับภาษาที่เลือก (screen reader / ฟอนต์ไทย-จีน จะได้ถูก)
+  // Keep <html lang> in sync with the chosen language (for screen readers and font selection)
   React.useEffect(() => { document.documentElement.lang = language; }, [language]);
   React.useEffect(() => { const timer = window.setTimeout(prefetchPages, 1500); return () => window.clearTimeout(timer); }, []);
 
@@ -147,7 +147,7 @@ export const App: React.FC = () => {
               {t("common.loadingPage")}
             </div>
           )}>
-            {/* key ตามหน้า เพื่อให้ animation เข้าหน้าเล่นใหม่ทุกครั้งที่เปลี่ยนเมนู */}
+            {/* Keyed by page so the entrance animation replays on every menu change */}
             <div key={currentPage} className="animate-page-in">
               {renderCurrentPage()}
             </div>
@@ -156,9 +156,9 @@ export const App: React.FC = () => {
       </div>
 
       {/* Mobile Bottom Navigation Bar (Part F) */}
-      {/* มือถือ/แท็บเล็ต: 4 หน้าหลัก + ปุ่ม More เปิดเมนูครบทั้ง 13 หน้า */}
+      {/* Phone/tablet: 4 main pages + a More button that opens all 13 pages */}
       <nav aria-label={t("tab.navLabel")} className="lg:hidden fixed bottom-0 inset-x-0 bg-white/95 backdrop-blur border-t border-borderLine z-30 px-2 pt-1.5 pb-[max(0.375rem,env(safe-area-inset-bottom))] grid grid-cols-5 items-center shadow-soft-lg">
-        {/* แถบเล็ก ๆ ที่เลื่อนตามแท็บที่เลือก (ช่องที่ 5 = More) */}
+        {/* Small indicator that slides to the selected tab (slot 5 = More) */}
         <span
           aria-hidden="true"
           className="absolute top-0 left-2 h-[3px] rounded-b-full bg-brand transition-transform duration-300 ease-out"

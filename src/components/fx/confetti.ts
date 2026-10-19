@@ -1,5 +1,5 @@
-// พลุกระดาษตอนวิเคราะห์เสร็จ (เขียนเองด้วย canvas ไม่ใช้ library)
-// ไม่เล่นถ้าเปิดลดการเคลื่อนไหว
+// Confetti when an analysis finishes (plain canvas, no library)
+// Does not play when reduced motion is on
 const COLORS = ["#6C4CF1", "#9B82FF", "#16C1B0", "#4FE7D8", "#F59A23", "#E5484D", "#FFFFFF"];
 
 export function fireConfetti(reduced = false) {
@@ -17,7 +17,7 @@ export function fireConfetti(reduced = false) {
   canvas.height = window.innerHeight * ratio;
   ctx.scale(ratio, ratio);
 
-  // ยิงจากมุมล่างซ้ายและขวา
+  // Fire from the bottom-left and bottom-right corners
   const pieces = Array.from({ length: 140 }, (_, i) => {
     const fromLeft = i % 2 === 0;
     const angle = (fromLeft ? -60 : -120) * (Math.PI / 180) + (Math.random() - 0.5) * 0.9;
@@ -40,7 +40,7 @@ export function fireConfetti(reduced = false) {
     const t = now - start;
     ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     for (const p of pieces) {
-      p.vy += 0.28; // แรงโน้มถ่วง
+      p.vy += 0.28; // gravity
       p.vx *= 0.99;
       p.x += p.vx;
       p.y += p.vy;

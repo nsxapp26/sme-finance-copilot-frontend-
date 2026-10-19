@@ -1,6 +1,6 @@
 import React from "react";
 
-// พื้นหลัง Hero: แสงออโรร่า 4 สี + พื้นตาราง 3 มิติ + อนุภาคลอยขึ้น (ตกแต่งอย่างเดียว ไม่มีข้อมูล)
+// Hero backdrop: 4-color aurora + 3D grid floor + rising particles (decoration only, no data)
 const PARTICLES = Array.from({ length: 18 }, (_, i) => ({
   left: `${(i * 37) % 100}%`,
   delay: `${(i * 0.7) % 6}s`,
@@ -24,7 +24,7 @@ export const HeroBackdrop: React.FC<{ animate: boolean }> = ({ animate }) => (
   </div>
 );
 
-// หัวข้อเด้งขึ้นทีละคำ (ภาษาไทยแบ่งตามช่องว่าง)
+// Title pops in word by word (Thai is split on spaces)
 export const PopWords: React.FC<{ text: string; startAt?: number; shine?: boolean }> = ({ text, startAt = 0, shine }) => (
   <>
     {text.split(" ").map((word, i) => (

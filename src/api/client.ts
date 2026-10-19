@@ -146,18 +146,18 @@ function requireBackend() {
   }
 }
 
-// ข้อมูล GET เก็บไว้ในหน่วยความจำ 30 วินาที กลับมาหน้าเดิมจะได้ไม่ต้องรอ API ใหม่
-// (API บน Vercel + Neon ใช้เวลาหลายวินาทีต่อครั้ง) และถ้าหลายหน้าขอ path เดียวกันพร้อมกันก็ยิงครั้งเดียว
-// เก็บเฉพาะคำตอบที่สำเร็จ และล้างทิ้งทุกครั้งที่มี POST ที่อาจบันทึกข้อมูล จะได้ไม่เห็นข้อมูลเก่าหลังบันทึก
+// GET responses are kept in memory for 30 seconds so returning to a page doesn't wait for the API again
+// (each Vercel + Neon request can take seconds), and concurrent requests for the same path share one call.
+// Only successful answers are cached, and any POST that may write data clears the cache so stale data never shows after a save.
 const GET_CACHE_MS = 30_000;
 const getCache = new Map<string, { at: number; promise: Promise<unknown> }>();
 
-// POST พวกนี้แค่คำนวณ/พรีวิว ไม่ได้เขียนลงฐานข้อมูล (ส่ง persist: false) จึงไม่ต้องล้าง cache
-// และถ้าส่งข้อมูลชุดเดิมซ้ำภายใน 30 วินาที ก็ใช้ผลเดิมได้ เช่นกลับไปหน้า SWARM อีกรอบ
+// These POSTs only calculate or preview and never write (they send persist: false), so they don't clear the cache.
+// Sending the same body again within 30 seconds reuses the earlier result, e.g. when returning to SWARM.
 const READ_ONLY_POSTS = new Set(["/swarm", "/cashflow/preview", "/sales/preview", "/forecast/preview", "/upload/preview"]);
 
-// ตอนเลือก EN ข้อมูลภาษาไทยจากฐานข้อมูลจะถูกแปลตามรายการใน dataTranslations.ts
-// แปลตอนส่งคืน ไม่ใช่ตอนเก็บ cache จึงสลับภาษาไปมาได้โดยไม่ต้องโหลดใหม่
+// In English mode, Thai database records are translated using dataTranslations.ts.
+// Translation happens on return, not when caching, so switching languages needs no reload.
 function requestJson<T>(path: string, init: RequestInit = {}): Promise<T> {
   return loadJson<T>(path, init).then((data) => (useAppStore.getState().language === "en" ? translateData(data) : data));
 }
@@ -169,7 +169,7 @@ function loadJson<T>(path: string, init: RequestInit = {}): Promise<T> {
     getCache.clear();
     return fetchJson<T>(path, init);
   }
-  if (readOnlyPost && typeof init.body !== "string") return fetchJson<T>(path, init); // เช่นไฟล์ที่อัปโหลด
+  if (readOnlyPost && typeof init.body !== "string") return fetchJson<T>(path, init); // e.g. an uploaded file
   const key = isGet ? path : `${path} ${init.body}`;
   const hit = getCache.get(key);
   if (hit && Date.now() - hit.at < GET_CACHE_MS) return hit.promise as Promise<T>;
@@ -277,7 +277,7 @@ export const apiClient = {
   authToken: () => authToken,
   setAuthToken(token: string | null) {
     authToken = token && token.trim() ? token : null;
-    getCache.clear(); // คนละสิทธิ์อาจเห็นข้อมูลไม่เหมือนกัน
+    getCache.clear(); // different roles may see different data
     try {
       if (authToken) sessionStorage.setItem(TOKEN_KEY, authToken);
       else sessionStorage.removeItem(TOKEN_KEY);

@@ -1,6 +1,6 @@
-// อ่าน GET /capabilities ครั้งเดียวต่อหน้า แทนที่จะเขียน useEnvelope ซ้ำทุกหน้า
-// ถ้าโหลดไม่ได้หรือเป็น demo mode ให้ถือว่า "ไม่รองรับ" ไว้ก่อน
-// (ห้ามเดาว่าฟีเจอร์ใช้งานได้)
+// Read GET /capabilities once per page instead of repeating useEnvelope everywhere.
+// If it fails to load or the app is in demo mode, treat everything as unsupported
+// (never assume a feature is available).
 
 import { useCallback } from "react";
 import { apiClient } from "@/api/client";
@@ -34,7 +34,7 @@ export function useCapabilities() {
   const state = useEnvelope<Capabilities>(load);
   const data = state.envelope?.data ?? null;
 
-  // available เป็น true ก็ต่อเมื่อ backend ตอบมาว่า true เท่านั้น
+  // available is true only when the backend says true
   const isAvailable = (name: CapabilityName) => data?.[name]?.available === true;
   const reasonFor = (name: CapabilityName, unknownText = tr("capReason.unknown")) =>
     capabilityReason(data?.[name], state.error ? `${unknownText} (${state.error})` : unknownText);

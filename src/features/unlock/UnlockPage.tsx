@@ -225,7 +225,7 @@ export const UnlockPage: React.FC = () => {
           </div>
         )}
 
-        {/* Value Unlocked Split Comparison Slider (ซื้อเอง vs ใช้ร่วม) */}
+        {/* Value Unlocked Split Comparison Slider (buy vs share) */}
         <div className="bg-white rounded-card p-5 border border-borderLine shadow-soft-sm space-y-4">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b border-slate-100 pb-3">
             <div>

@@ -19,7 +19,7 @@ export function storedProposal<T extends { orderId?: string }>(
   return envelope.data;
 }
 
-// รายการข้อมูลที่ขาด แปลตามภาษาที่เลือก (key อยู่ใน src/i18n: missing.<code>)
+// Missing-data labels in the selected language (keys live in src/i18n: missing.<code>)
 
 export function missingDataLabel(code: string): string {
   const key = `missing.${code}`;

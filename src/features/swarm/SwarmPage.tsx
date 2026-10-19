@@ -43,7 +43,7 @@ export const SwarmPage: React.FC = () => {
 
   const [order, setOrder] = useState<SwarmOrder | null>(null);
   const [proposal, setProposal] = useState<SwarmProposal | null>(null);
-  // ป้ายประเภทข้อมูลอ่านจาก response จริง (preview = ตามที่ backend ระบุ)
+  // Data-kind label comes from the actual response (for a preview, whatever the backend declares)
   const [proposalKind, setProposalKind] = useState<DataKind>("forecast");
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
@@ -128,7 +128,7 @@ export const SwarmPage: React.FC = () => {
       }).catch((err) => { if (sequence.current === id) setError(err.message); })
       .finally(() => { if (sequence.current === id) setLoading(false); });
   };
-  // โหลดใหม่ตอนสลับภาษาด้วย ชื่อทรัพยากรและข้อความจากฐานข้อมูลจะได้แปลตาม
+  // Also reload when the language changes so resource names and database text are re-translated
   useEffect(loadData, [language]);
   const assemble = async (next: OrderContext, message: string) => {
     if (busy.current) return; // One scan at a time; a repeat click is ignored.
@@ -201,7 +201,7 @@ export const SwarmPage: React.FC = () => {
     <StateRenderer onRetry={loadData}>
       {/* Studio Cockpit Container with Deep Navy Theme & Cosmic Grid */}
       <div className="min-h-[calc(100vh-5rem)] bg-[#070D24] text-slate-100 rounded-3xl p-4 lg:p-7 border border-[#1b2b60] shadow-2xl relative overflow-hidden bg-cosmic-grid animate-fade-in">
-        {/* พื้นหลังออโรร่า + พื้นตาราง 3 มิติ แบบเดียวกับหน้าแรก (ตกแต่งอย่างเดียว) */}
+        {/* Aurora + 3D grid backdrop, same as the home page (decoration only) */}
         <HeroBackdrop animate={!isReducedMotion} />
 
         {/* Top Title & S2 Assembly Action Bar */}
@@ -222,7 +222,7 @@ export const SwarmPage: React.FC = () => {
           </div>
 
           {/* Action CTAs */}
-          {/* มือถือ: ปุ่มสลับมุมมองเต็มแถว แล้วปุ่มสั่งงานสองปุ่มเรียงคู่กันข้างล่าง (กันล้นขอบขวา) */}
+          {/* Phone: view toggle on its own row, then the two action buttons side by side below (prevents overflow on the right) */}
           <div className="grid grid-cols-2 sm:flex sm:flex-wrap items-stretch sm:items-center gap-2.5 w-full lg:w-auto">
             {/* View Mode Toggle */}
             <div className="col-span-2 bg-[#101b3b] border border-slate-700/70 p-1 rounded-xl flex items-center text-xs">
@@ -277,7 +277,7 @@ export const SwarmPage: React.FC = () => {
 
         {/* S3 Project Stuck Spotlight Control Bar */}
         <div className="relative z-10 mt-4 p-3 bg-[#0d1633]/90 backdrop-blur-md rounded-2xl border border-slate-800 flex flex-wrap items-center justify-between gap-3 shadow-lg">
-          {/* มือถือ: หัวข้ออยู่บรรทัดบน ปุ่มกรองขึ้นบรรทัดใหม่ได้ ไม่ล้นจอ */}
+          {/* Phone: title on the first line, filter buttons wrap instead of overflowing */}
           <div className="flex flex-col sm:flex-row sm:items-center gap-2.5 w-full sm:w-auto min-w-0">
             <span className="text-xs font-bold text-slate-300 uppercase tracking-wider flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4 text-attention" />
@@ -382,7 +382,7 @@ export const SwarmPage: React.FC = () => {
 
         {/* Main 3-Column Studio Grid Layout */}
         <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-5 mt-5 items-start">
-          {/* Column 1: Order Specifications (ซ้าย - 3 Cols) */}
+          {/* Column 1: Order Specifications (left - 3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <div className="p-5 rounded-2xl bg-[#0E1838]/90 border border-slate-700/60 backdrop-blur-md shadow-xl space-y-3.5">
               <div className="flex items-center justify-between">
@@ -471,7 +471,7 @@ export const SwarmPage: React.FC = () => {
             </div>
           </div>
 
-          {/* Column 2: Swarm Orbit Studio & Radar Cockpit (กลาง - 6 Cols) */}
+          {/* Column 2: Swarm Orbit Studio & Radar Cockpit (center - 6 cols) */}
           <div className="lg:col-span-6 space-y-4">
             {viewMode === "cockpit" ? (
               /* Orbital Radar Cockpit View */
@@ -716,7 +716,7 @@ export const SwarmPage: React.FC = () => {
             )}
           </div>
 
-          {/* Column 3: Totals & Financial Settlement Cockpit (ขวา - 3 Cols) */}
+          {/* Column 3: Totals & Financial Settlement Cockpit (right - 3 cols) */}
           <div className="lg:col-span-3 space-y-4">
             <div className="p-5 rounded-2xl bg-[#0E1838]/90 border border-slate-700/60 backdrop-blur-md shadow-xl space-y-4">
               <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block">
@@ -820,7 +820,7 @@ export const SwarmPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Shop Swap Modal (Part B Rule #5: เปลี่ยนคู่ค้าต้องผ่านขั้นตรวจยืนยัน) */}
+        {/* Shop Swap Modal (Part B Rule #5: swapping a partner requires a confirmation step) */}
         {swappingShopId && (
           <div
             className="fixed inset-0 z-50 bg-[#050B1E]/80 backdrop-blur-md flex items-center justify-center p-4 animate-fade-in"

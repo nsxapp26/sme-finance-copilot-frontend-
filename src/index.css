@@ -139,7 +139,7 @@ body {
   -webkit-backdrop-filter: blur(16px);
 }
 
-/* --- ลูกเล่นเพิ่ม: เข้าหน้า / ผลลัพธ์ทยอยขึ้น / skeleton แบบ shimmer --- */
+/* --- Extra motion: page entrance / staggered results / shimmer skeleton --- */
 @keyframes pageIn {
   from { opacity: 0; transform: translateY(8px); }
   to { opacity: 1; transform: translateY(0); }
@@ -160,7 +160,7 @@ body {
 .animate-page-in {
   animation: pageIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
-/* ใช้คู่กับ style={{ animationDelay }} เพื่อให้ทยอยขึ้นทีละอัน */
+/* Use with style={{ animationDelay }} to reveal items one after another */
 .animate-rise {
   animation: rise 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
@@ -180,14 +180,14 @@ body {
 .press:active:not(:disabled) {
   transform: scale(0.97);
 }
-/* เงาตอน hover ใช้เฉพาะเครื่องที่มีเมาส์ จอสัมผัสจะได้ไม่มีเงาค้างหลังแตะ */
+/* Hover shadow only on devices with a mouse, so touch screens don't keep a stuck shadow after a tap */
 @media (hover: hover) {
   .press:hover:not(:disabled) {
     box-shadow: 0 6px 16px -8px rgba(108, 76, 241, 0.55);
   }
 }
 
-/* กราฟ: เส้นค่อย ๆ วาด / จุดเด้งขึ้น / แท่งยืดออกจากเส้น 0 */
+/* Charts: line draws in / dots pop in / bars grow from the zero line */
 @keyframes chartDraw {
   from { stroke-dashoffset: 1; }
   to { stroke-dashoffset: 0; }
@@ -213,7 +213,7 @@ body {
   animation: chartGrow 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
 }
 
-/* เส้นเชื่อมใน diagram หน้า Overview + จุดวิ่ง */
+/* Connector lines in the Overview diagram + moving dots */
 .flow-link {
   position: relative;
   height: 2px;
@@ -247,7 +247,7 @@ body {
   to { left: calc(100% - 6px); opacity: 0; }
 }
 
-/* จุดแสงวิ่งลงตามรางใน flow มือถือ */
+/* Glowing dot running down the rail in the mobile flow */
 .rail-dot {
   box-shadow: 0 0 10px 3px rgba(155, 130, 255, 0.85);
   animation: railDot 3.2s ease-in-out infinite;
@@ -262,7 +262,7 @@ body {
 .no-scrollbar::-webkit-scrollbar { display: none; }
 
 /* ===== Playful 3D ===== */
-/* การ์ดเอียงตามเมาส์ (ค่า --rx/--ry/--mx/--my ตั้งจาก useTilt ใน App.tsx) */
+/* Cards tilt with the mouse (--rx/--ry/--mx/--my are set by useTilt in App.tsx) */
 [data-tilt], [data-tilt-grid] > * {
   position: relative;
   transform: perspective(900px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
@@ -273,7 +273,7 @@ body {
   transition: transform 0.08s linear, box-shadow 0.3s ease;
   box-shadow: 0 18px 40px -18px rgba(108, 76, 241, 0.55);
 }
-/* แสงสะท้อนวิ่งตามเมาส์ */
+/* Glare that follows the mouse */
 [data-tilt]::after, [data-tilt-grid] > *::after {
   content: "";
   position: absolute;
@@ -287,7 +287,7 @@ body {
 }
 [data-tilt].is-tilting::after, [data-tilt-grid] > .is-tilting::after { opacity: 1; }
 
-/* ปุ่มเด้งแบบสปริง */
+/* Springy buttons */
 @media (hover: hover) {
   .rounded-btn:not(:disabled), .press:not(:disabled) {
     transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1), box-shadow 0.25s ease, background-color 0.2s ease, opacity 0.2s ease;
@@ -296,14 +296,14 @@ body {
 }
 .rounded-btn:not(:disabled):active { transform: scale(0.95); }
 
-/* Hero: ออโรร่า + พื้นตาราง 3 มิติ + อนุภาคลอย + ตัวหนังสือไล่สี */
+/* Hero: aurora + 3D grid floor + floating particles + gradient text */
 .hero-aurora span {
   position: absolute;
   border-radius: 9999px;
   filter: blur(60px);
   opacity: 0.55;
   animation: auroraFloat 14s ease-in-out infinite alternate;
-  will-change: transform; /* ให้ GPU ขยับ ไม่ต้องวาด blur ใหม่ทุกเฟรม */
+  will-change: transform; /* let the GPU move it instead of repainting the blur every frame */
 }
 @keyframes auroraFloat {
   0% { transform: translate3d(0, 0, 0) scale(1); }
@@ -372,7 +372,7 @@ body {
   50% { transform: translateY(-8px); }
 }
 
-/* หัวหน้าเพจทุกหน้า: การ์ดมีแสงออโรร่าเบา ๆ + ไอคอนลอย + หัวข้อค่อย ๆ ขึ้น */
+/* Page header on every page: soft aurora glow + floating icon + rising title */
 .page-header {
   position: relative;
   overflow: hidden;
@@ -410,7 +410,7 @@ body {
   50% { transform: translateY(-3px) rotate(-6deg); }
 }
 
-/* ส่วนต่าง ๆ ของหน้าทยอยขึ้นตอนเปิดหน้า (ทุกหน้าอัตโนมัติ) */
+/* Page sections rise in one after another when a page opens (applies to every page) */
 .animate-page-in .max-w-7xl > * { animation: rise 0.32s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
 .animate-page-in .max-w-7xl > *:nth-child(2) { animation-delay: 35ms; }
 .animate-page-in .max-w-7xl > *:nth-child(3) { animation-delay: 70ms; }
@@ -418,7 +418,7 @@ body {
 .animate-page-in .max-w-7xl > *:nth-child(5) { animation-delay: 140ms; }
 .animate-page-in .max-w-7xl > *:nth-child(n+6) { animation-delay: 160ms; }
 
-/* ไอคอนในกล่องสถานะ: ลอยขึ้นลง + วงแสงกระเพื่อม */
+/* State box icon: gentle float + pulsing ring */
 .state-icon {
   position: relative;
   animation: stateBob 3s ease-in-out infinite;
@@ -441,7 +441,7 @@ body {
   100% { transform: scale(1.35); opacity: 0; }
 }
 
-/* ปุ่ม "ลดการเคลื่อนไหว" ในแอป (เดิมใส่ class ไว้แต่ไม่มี CSS รองรับ) */
+/* In-app "reduce motion" toggle (the class existed before but had no CSS) */
 .reduce-motion *, .reduce-motion ::before, .reduce-motion ::after {
   animation-duration: 0.01ms !important;
   animation-delay: 0ms !important;

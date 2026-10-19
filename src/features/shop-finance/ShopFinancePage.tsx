@@ -125,7 +125,7 @@ export const ShopFinancePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Essential Headline Callout: 'รับงานเพิ่มแล้วเหลือเงินเพิ่มจริงไหม' (Rule D & G10) */}
+        {/* Essential Headline Callout: 'Does taking this order really leave more cash?' (Rule D & G10) */}
         <div className="p-5 rounded-card bg-gradient-to-r from-brand/5 via-white to-emerald-50/50 border border-brand/20 space-y-2 shadow-soft-sm">
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-display font-bold text-ink flex items-center gap-2">

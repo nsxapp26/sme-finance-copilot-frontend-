@@ -51,7 +51,7 @@ export const CashflowPage: React.FC = () => {
     const value = accepted?.input?.[field];
     return value == null || value === "" ? undefined : String(value);
   };
-  // ฟอร์ม preview ใช้ได้ทั้งตอนมีและไม่มี timeline ที่บันทึกไว้
+  // The preview form works with or without a stored timeline
   const previewForm = (
     <CashflowPreviewForm
       key={accepted?.revision || "no-statement"}
@@ -324,7 +324,7 @@ export const CashflowPage: React.FC = () => {
           )}
         </div>
 
-        {/* เพิ่ม preview ให้ลองใส่รายการเองได้ แม้จะมี timeline จริงอยู่แล้ว */}
+        {/* Preview lets users try their own entries even when a real timeline exists */}
         {previewForm}
       </div>
     </StateRenderer>

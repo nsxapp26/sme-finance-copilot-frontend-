@@ -243,7 +243,7 @@ export const OverviewPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Essential Contrast Callout: "แยกกำไร vs เงินสด" (Hard Rule & UX Principle) */}
+        {/* Essential Contrast Callout: "Profit vs cash" (Hard Rule & UX Principle) */}
         <div className="p-4 rounded-card bg-gradient-to-r from-brand/5 via-white to-amber-50/50 border border-brand/20 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start gap-3">
             <div className="w-9 h-9 rounded-xl bg-brand/10 text-brand flex items-center justify-center shrink-0 mt-0.5">
@@ -269,7 +269,7 @@ export const OverviewPage: React.FC = () => {
           </button>
         </div>
 
-        {/* 4 Actionable Items (เรื่องที่ควรทำต่อ per Screen G3) */}
+        {/* 4 Actionable Items (next steps per Screen G3) */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <h3 className="text-sm font-display font-bold text-ink flex items-center gap-1.5">

@@ -233,7 +233,7 @@ export const ProjectsPage: React.FC = () => {
                 <span className="text-xl font-extrabold font-mono text-brand">
                   {t("projects.m4", { shopNetProfits: activeProj.postMortem.shopNetProfits.length })}
                 </span>
-                {/* backend ไม่ได้ส่งยอดรวมมา เลยไม่บวกเองใน React ดูรายร้านด้านล่าง */}
+                {/* The backend sends no total, so we don't add it up in React; see the per-shop rows below */}
                 <span className="text-[10px] text-brand/80 block mt-0.5">{t("projects.15")}</span>
               </div>
             </div>

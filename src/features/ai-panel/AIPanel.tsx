@@ -77,7 +77,7 @@ export const AIPanel: React.FC = () => {
     }
   };
 
-  // คำถามตัวอย่าง (ยังถามจริงไม่ได้) แปลตามภาษา
+  // Sample questions (not answerable yet), translated per language
   const questionPages = ["overview", "swarm", "cashflow", "health", "funding"];
   const questionPage = questionPages.includes(currentPage) ? currentPage : "default";
   const currentQuestions = [1, 2, 3].map((n) => t(`aiq.${questionPage}.${n}` as TranslationKey));

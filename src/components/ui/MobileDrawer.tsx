@@ -137,7 +137,7 @@ const groupKey: Record<NavItem["group"], TranslationKey> = {
   "Build Opportunities & Teams": "navGroup.opportunities",
   "Sandbox & Reports": "navGroup.sandbox",
 };
-// badge ที่เป็นข้อความตายตัว แปลตาม key
+// Fixed-text badges, translated by key
 const badgeKey: Partial<Record<NavPage, TranslationKey>> = {
   cashflow: "navBadge.timeTravel",
   swarm: "navBadge.featured",
@@ -162,7 +162,7 @@ export const MobileDrawer: React.FC = () => {
 
   // The funding badge reports the stored proposal's own gap, not a fixed figure.
   const proposalState = useEnvelope<SwarmProposal>(useCallback(() => apiClient.getSwarmProposal(), []));
-  // ไม่มี database -> backend ส่ง proposal เปล่า (ค่า 0 ทั้งหมด) มา ถือว่าไม่มีข้อมูล
+  // No database -> the backend sends an empty proposal (all zeros); treat it as no data
   const proposal = storedProposal(proposalState.envelope);
   const fundingBadge = proposal && proposal.totalFundingGap > 0
     ? t("navBadge.shortfall", { amount: proposal.totalFundingGap.toLocaleString("en-US", { maximumFractionDigits: 0 }) })
@@ -230,7 +230,7 @@ export const MobileDrawer: React.FC = () => {
           </div>
         </div>
 
-        {/* เลือกภาษา */}
+        {/* Language picker */}
         <div className="px-3 pt-3">
           <div className="text-[10px] font-bold text-ink-muted uppercase tracking-wider mb-1.5">{t("lang.label")}</div>
           <LanguageSwitcher />

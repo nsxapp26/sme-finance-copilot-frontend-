@@ -1214,6 +1214,13 @@ export const en = {
   "theme.label": "Theme",
   "theme.dark": "Dark",
   "theme.light": "Light",
+  // robot
+  "robot.label": "Copilot robot: click for a tip",
+  "robot.tip1": "Hi! I'm your finance copilot. Click me for tips.",
+  "robot.tip2": "Click a bottleneck button to see where this order gets stuck.",
+  "robot.tip3": "Every number comes from the backend. Unknown values show as \"No data\", never 0.",
+  "robot.tip4": "Import your own statement to analyze your business.",
+  "robot.alert": "Bottleneck highlighted! Follow the glowing link in the diagram.",
   // sales
   "sales.loadingLabel": "Loading sales",
   "sales.loading": "Loading product and channel records…",

@@ -642,3 +642,108 @@ html.dark .skeleton {
 html.dark ::-webkit-scrollbar-thumb { background: rgba(120, 135, 190, 0.35); }
 html.dark input, html.dark select, html.dark textarea { color-scheme: dark; }
 html.dark ::placeholder { color: rgb(var(--c-ink-light)); }
+
+/* ===== Copilot robot (CyberRobot.tsx) ===== */
+.robot-float { animation: robotFloat 4.5s ease-in-out infinite; }
+@keyframes robotFloat { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+.robot-shadow { animation: robotShadow 4.5s ease-in-out infinite; transform-origin: 60px 144px; }
+@keyframes robotShadow { 0%, 100% { transform: scaleX(1); opacity: 0.25; } 50% { transform: scaleX(0.8); opacity: 0.15; } }
+.robot-antenna { animation: robotPulse 1.6s ease-in-out infinite; }
+@keyframes robotPulse { 0%, 100% { opacity: 1; filter: drop-shadow(0 0 4px currentColor); } 50% { opacity: 0.45; } }
+.robot-core { animation: robotCore 2.4s ease-in-out infinite; transform-origin: 60px 96px; }
+@keyframes robotCore { 0%, 100% { transform: scale(1); opacity: 0.9; } 50% { transform: scale(1.12); opacity: 1; } }
+.robot-blink { animation: robotBlink 4.2s infinite; }
+@keyframes robotBlink { 0%, 92%, 100% { transform: scaleY(1); } 95% { transform: scaleY(0.1); } }
+.robot-wave { animation: robotWave 6s ease-in-out infinite; }
+@keyframes robotWave {
+  0%, 70%, 100% { transform: rotate(0deg); }
+  75% { transform: rotate(-150deg); } 80% { transform: rotate(-120deg); }
+  85% { transform: rotate(-150deg); } 90% { transform: rotate(-120deg); }
+}
+.robot-data { animation: robotData 1.2s linear infinite; }
+@keyframes robotData { to { stroke-dashoffset: -16; } }
+.robot-bubble { animation: robotBubble 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+@keyframes robotBubble { from { opacity: 0; transform: translateY(6px) scale(0.92); } }
+
+/* ===== Cyber styling (dark theme) ===== */
+/* Faint circuit grid behind every page */
+html.dark body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(79, 231, 216, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 231, 216, 0.045) 1px, transparent 1px);
+  background-size: 44px 44px;
+  mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 85%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 30%, black 30%, transparent 85%);
+}
+
+/* HUD corner brackets: add class "hud" to any box */
+.hud { position: relative; }
+.hud::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  z-index: 15;
+  pointer-events: none;
+  --c: rgba(79, 231, 216, 0.7);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / 18px 2px,
+    linear-gradient(var(--c), var(--c)) top left / 2px 18px,
+    linear-gradient(var(--c), var(--c)) top right / 18px 2px,
+    linear-gradient(var(--c), var(--c)) top right / 2px 18px,
+    linear-gradient(var(--c), var(--c)) bottom left / 18px 2px,
+    linear-gradient(var(--c), var(--c)) bottom left / 2px 18px,
+    linear-gradient(var(--c), var(--c)) bottom right / 18px 2px,
+    linear-gradient(var(--c), var(--c)) bottom right / 2px 18px;
+  background-repeat: no-repeat;
+  opacity: 0.8;
+}
+
+/* Moving scanlines over the hero */
+.scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 3px);
+  mix-blend-mode: overlay;
+}
+.scanlines::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 120px;
+  background: linear-gradient(transparent, rgba(79, 231, 216, 0.07), transparent);
+  animation: scanSweep 7s linear infinite;
+}
+@keyframes scanSweep { from { top: -120px; } to { top: 100%; } }
+
+/* Short RGB-split glitch on the hero title every few seconds */
+.cyber-glitch { animation: glitch 6s infinite; }
+@keyframes glitch {
+  0%, 93%, 100% { text-shadow: none; transform: none; }
+  94% { text-shadow: -2px 0 #4FE7D8, 2px 0 #E54FD8; transform: translateX(1px); }
+  95% { text-shadow: 2px 0 #4FE7D8, -2px 0 #E54FD8; transform: translateX(-1px); }
+  96% { text-shadow: -1px 0 #4FE7D8, 1px 0 #E54FD8; transform: none; }
+}
+
+/* Blinking terminal cursor */
+.term-cursor::after { content: "▍"; margin-left: 2px; animation: termBlink 1s steps(1) infinite; }
+@keyframes termBlink { 50% { opacity: 0; } }
+
+/* Neon edge on cards and page headers in dark mode */
+html.dark .page-header { border-color: rgba(79, 231, 216, 0.22); }
+html.dark .page-header h1 { text-shadow: 0 0 18px rgba(155, 130, 255, 0.35); }
+@media (hover: hover) {
+  html.dark [data-tilt]:hover, html.dark [data-tilt-grid] > *:hover {
+    border-color: rgba(79, 231, 216, 0.45);
+    box-shadow: 0 0 0 1px rgba(79, 231, 216, 0.25), 0 0 28px -8px rgba(79, 231, 216, 0.55);
+  }
+}
+html.dark aside .bg-brand { box-shadow: 0 0 18px -2px rgba(108, 76, 241, 0.75), inset 0 0 0 1px rgba(155, 130, 255, 0.45); }
+/* Phones: the hero padding is too small for the corner brackets */
+@media (max-width: 639px) { .hud::after { display: none; } }

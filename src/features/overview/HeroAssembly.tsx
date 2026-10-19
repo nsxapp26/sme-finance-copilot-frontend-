@@ -5,6 +5,7 @@ import { SwarmOrder, SwarmProposal, UnlockResource } from "@/api/contracts/types
 import { useEnvelope } from "@/hooks/useEnvelope";
 import { useT } from "@/i18n";
 import { HeroBackdrop, PopWords } from "@/components/fx/HeroBackdrop";
+import { CyberRobot } from "@/components/fx/CyberRobot";
 import { storedProposal } from "@/api/dataAvailability";
 import { DataKindBadge } from "@/components/signature/DataKindBadge";
 import {
@@ -86,14 +87,20 @@ export const HeroAssembly: React.FC = () => {
   const nodes = Object.fromEntries(mobileFlow.map((node) => [node.key, node])) as Record<string, FlowNode>;
 
   return (
-    <div className="relative bg-navy-deep text-white rounded-card p-4 sm:p-6 md:p-8 overflow-hidden shadow-soft-lg mb-8 border border-navy-border">
+    <div className="hud relative bg-navy-deep text-white rounded-card p-4 sm:p-6 md:p-8 overflow-hidden shadow-soft-lg mb-8 border border-navy-border">
       {/* Background Soft Aurora Canvas / Gradient */}
       <HeroBackdrop animate={!isReducedMotion} />
+      <div className="scanlines" aria-hidden="true" />
+
+      {/* Copilot robot: top-right on desktop, small next to the title on phones/tablets */}
+      <CyberRobot animate={!isReducedMotion} alert={activeScenario !== "normal"} className="hidden lg:block absolute top-6 right-10 z-20 w-28 h-[140px]" />
+      <CyberRobot animate={!isReducedMotion} alert={activeScenario !== "normal"} greet={false} bubbleBelow className="lg:hidden absolute top-3 right-3 z-20 w-14 h-[70px]" />
 
       <div className="relative z-10 grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
         {/* Left Column: Headline, Description & CTAs */}
         <div className="lg:col-span-5 space-y-4 text-left">
-          <h1 className="text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-white leading-tight [perspective:600px]">
+          <div className="font-mono text-[10px] sm:text-[11px] tracking-widest text-resource-glow/90 uppercase term-cursor pr-16 lg:pr-0">// SME Finance Copilot</div>
+          <h1 className={`text-2xl sm:text-3xl md:text-4xl font-display font-extrabold text-white leading-tight [perspective:600px] pr-14 lg:pr-0 ${isReducedMotion ? "" : "cyber-glitch"}`}>
             <PopWords text={t("hero.headline1")} />
             <br />
             <PopWords text={t("hero.headline2")} startAt={4} shine />

@@ -225,8 +225,8 @@ export const AppHeader: React.FC = () => {
           </div>
         </div>
 
-        {/* Language picker (on phones it is in the More menu) */}
-        <div className="hidden sm:flex items-center gap-2">
+        {/* Theme + language pickers (on phones and tablets they are in the More menu) */}
+        <div className="hidden lg:flex items-center gap-2">
           <ThemeSwitcher compact />
           <LanguageSwitcher compact />
         </div>

@@ -171,21 +171,21 @@ Malformed named SME identifiers no longer silently fall back to a demo answer.
 Upload persist=false now suppresses rejection-event writes too; persist=true
 continues to record rejected upload metadata as before.
 
-อัปเดต 2026-10-16 · ตรวจ source `48d9385` + validation regression repair ในรอบนี้ และ HTTP จริง · base URL `/api/v1`.
-นี่คือ contract ที่มีอยู่ ไม่ใช่ design wishlist. รายการ `/import/upload`, `/import/validate`,
-`/import/confirm` เดิมไม่มี route จริง ให้ใช้ upload/manual/analyze ด้านล่าง.
-ดู [สถานะฟีเจอร์และแผนส่งต่อ](../backend/docs/DEMO_HANDOFF.md) สำหรับงานที่ยังไม่ implement.
+Updated 2026-10-16 · checked against source `48d9385`, this round's validation regression repair, and live HTTP · base URL `/api/v1`.
+This is the contract that exists today, not a design wishlist. The former `/import/upload`, `/import/validate`,
+and `/import/confirm` entries never had real routes; use the upload/manual/analyze routes below.
+See [feature status and handoff plan](../backend/docs/DEMO_HANDOFF.md) for work that is not yet implemented.
 
-FinancialInput ปัจจุบันมี 39 top-level fields (7 required / 32 optional); inventory เป็น
-optional nullable และ Excel รองรับชื่อ Inventory/Stock/สินค้าคงเหลือ/สต็อก. Import ยังรับ
-38 fields; ยังไม่มีช่อง inventory หรือ stock/DIO math. Unknown ไม่กลายเป็น 0 และ NaN/Infinity
-ถูกปฏิเสธ; การเพิ่ม inventory ไม่ได้เพิ่มหลักฐานสำหรับคำนวณ DIO อัตโนมัติ.
+FinancialInput currently has 39 top-level fields (7 required / 32 optional); inventory is
+optional and nullable, and Excel accepts the names Inventory/Stock and the Thai aliases สินค้าคงเหลือ/สต็อก. Import still accepts
+38 fields; there is no inventory field or stock/DIO math yet. Unknown values never become 0, and NaN/Infinity
+are rejected; adding inventory does not by itself provide evidence for calculating DIO.
 
-## 1. Financial view envelopes และ unknowns
+## 1. Financial view envelopes and unknowns
 
-Financial GET views คืน `data`, `kind`, `status`, `missing`, `asOf`, `source`;
-โดยทั่วไปมี analyzedAt/evidenceRefs/unit ตาม endpoint. Binary template, auth และ
-validation/operation responses มีรูปเฉพาะของตัวเอง อย่า cast ทุก response เป็น view.
+Financial GET views return `data`, `kind`, `status`, `missing`, `asOf`, `source`;
+most also include analyzedAt/evidenceRefs/unit depending on the endpoint. The binary template, auth, and
+validation/operation responses have their own shapes; do not cast every response to a view.
 
 ```typescript
 type FinancialView<T> = {
@@ -200,99 +200,97 @@ type FinancialView<T> = {
 };
 ```
 
-`asOf` เป็นวันที่/เวลาเมื่อมีข้อมูล; offline/catalog บางคำตอบยังเป็น string ว่าง ไม่ควรแสดง
-Invalid Date. source ปัจจุบันเช่น stored_record, database, supplied_input, demo_dataset, none.
-source ที่อ่านจาก DB ไม่ได้ทำให้ seed กลายเป็นข้อมูลลูกค้าจริง.
-Scalar unknown เป็น null, series ที่ไม่มีหลักฐานเป็น [] และมีชื่อใน missing.
-missing ไม่ว่างต้องไม่อ้าง ok; grading/metric มี sub-status ให้ตรวจแยก.
+`asOf` is a date/time when data exists; some offline/catalogue responses still return an empty string, which must not
+be displayed as Invalid Date. Current source values include stored_record, database, supplied_input, demo_dataset, none.
+A source read from the database does not turn seed data into real customer data.
+An unknown scalar is null; a series without evidence is [] and is named in missing.
+A response with a non-empty missing list must not claim ok; grading/metrics carry sub-statuses to check separately.
 
-**Legacy gap ที่ยังไม่ได้แก้:** Cost adapter ยังคืน costPerUnit/profitPerUnit/breakevenUnits=0
-เมื่อไม่มีข้อมูล พร้อม insufficient_data/missing (ตรวจ POST analyze ขั้นต่ำจริงแล้ว).
-นี่เป็น placeholder ไม่ใช่ known zero. ต้องปรับ adapter/types/หน้าที่รับผลคู่กันก่อนอ้างว่า
-runtime รองรับ null ทุก widget; source ของ engine ยังแยก unavailable ถูกต้อง
+**Resolved (verified 2026-10-19 against `backend/app/adapters.py`):** the Cost adapter now returns
+costPerUnit/profitPerUnit/breakevenUnits as null when data is missing, together with insufficient_data/missing,
+instead of the earlier 0 placeholder.
 
-**Type gap ที่ยังต้องแก้:** `src/api/contracts/types.ts` ยังไม่มี source ใน Envelope;
-BusinessOverview ยังเป็น number สำหรับ scalar/diff และไม่มี netProfitMargin แม้ backend
-คืน null/margin แล้ว. ตัวอย่างข้างบนอธิบาย runtime contract ไม่ได้แปลว่า types.ts แก้แล้ว.
+**Resolved (verified 2026-10-19 against `src/api/contracts/types.ts`):** Envelope now includes `source`, and
+BusinessOverview uses `number | null` for scalars and includes `netProfitMargin`, matching the backend.
 
-## 2. Read contracts 16 เส้นทางที่ client มีจริง
+## 2. Read contracts: the 16 routes the client actually calls
 
-| View | Path หลัง base URL | Payload / บริบทจริง |
+| View | Path after base URL | Actual payload / context |
 | --- | --- | --- |
-| Overview | `/overview` | BusinessOverview; scalar/diff nullable, netProfitMargin; kind ตาม input |
-| Cashflow | `/cashflow/timeline` | CashflowDay[] จาก dated events; รับ sme_id, ไม่แผ่ยอดรวมเป็นรายวัน |
-| Cashflow preview | `POST /cashflow/preview` | `{as_of, opening_cash, reserve, events[]}`; แต่ละรายการต้องมีวันที่ในช่วง 1–90 วันหลัง as_of, ประเภท, คำอธิบาย, จำนวนเงิน และสถานะรับ/จ่าย; คืน CashflowDay[] ชนิด simulated พร้อม `persisted=false`; ไม่เขียนฐานข้อมูล |
-| Shops | `/shops` | Shop[] พร้อม UUID จริง; ไม่กำหนดจำนวนร้านตายตัว |
-| Order | `/order` | SwarmOrder หรือ null; active stored order ตาม ACTIVE_PROJECT_ORDER |
-| Stored proposal | `/swarm/proposal` | SwarmProposal ที่บันทึก; ไม่ใช่ POST preview ล่าสุด |
-| Shop finance | `/shops/{shop_id}/finance` | ShopFinance หรือ null; UUID จริง, optional order_ref เพื่อ pin โครงการ |
-| Funding options | `/funding/options` | FundingOption[]; sme_id/amount optional; default หา SME ที่มี gap ไม่ใช่ imported input |
-| UNLOCK catalogue | `/unlock/resources` | UnlockResource[]; read ไม่ใช่ reservation/detach transaction |
-| Chaos catalogue | `/simulator/chaos` | ChaosScenario[] ที่เก็บไว้; การอ่าน scenario ไม่ได้ run simulation |
-| Health | `/health/indicators` | HealthIndicator[]; value nullable, trend ไม่มีหลักฐานต้องว่าง |
-| Cost | `/cost/breakdown` | CostBreakdown; ไม่มี dated investment schedule ไม่สร้าง NPV/IRR |
-| Products | `/sales/products` | ProductSales[] จาก catalogue; ไม่ได้คำนวณ product breakdown จากงบที่ import |
-| Channels | `/sales/channels` | ChannelSales[] จาก catalogue; ไม่มีแถวไม่แต่ง channel split |
-| Sales preview | `POST /sales/preview` | รับ `{products[], channels[]}`; สินค้าต้องมี name/category/unitsSold/revenue/cost/turnoverDays; ช่องทางต้องมี channel/grossSales/commissionFee/adCost/deliveryCost; คืนกำไรและ margin จากรายการที่กรอก, `kind=simulated`, `persisted=false`; ไม่เขียนฐานข้อมูล |
-| Funder | `/funder/projects` | FunderProject[]; route ใช้ resolve_principal, อย่าเปิด enforcement โดยยังไม่ต่อ token |
-| Projects | `/projects` | ProjectRecord[] ที่บันทึก; ไม่สร้างไฟล์ report/export |
-| AI panel | `/ai/explain?page={id}` | AIResponse จาก rules; รับ sme_id/coverage; GET นี้ไม่เรียก LLM |
+| Overview | `/overview` | BusinessOverview; scalars/diffs nullable, netProfitMargin; kind follows the input |
+| Cashflow | `/cashflow/timeline` | CashflowDay[] from dated events; accepts sme_id; never spreads totals across days |
+| Cashflow preview | `POST /cashflow/preview` | `{as_of, opening_cash, reserve, events[]}`; each event needs a date 1–90 days after as_of, a type, a description, an amount, and an in/out direction; returns simulated CashflowDay[] with `persisted=false`; never writes to the database |
+| Shops | `/shops` | Shop[] with real UUIDs; no fixed number of shops |
+| Order | `/order` | SwarmOrder or null; the active stored order per ACTIVE_PROJECT_ORDER |
+| Stored proposal | `/swarm/proposal` | The saved SwarmProposal; not the latest POST preview |
+| Shop finance | `/shops/{shop_id}/finance` | ShopFinance or null; real UUID, optional order_ref to pin the project |
+| Funding options | `/funding/options` | FundingOption[]; sme_id/amount optional; by default finds an SME with a gap, not the imported input |
+| UNLOCK catalogue | `/unlock/resources` | UnlockResource[]; a read, not a reservation/detach transaction |
+| Chaos catalogue | `/simulator/chaos` | Stored ChaosScenario[]; reading a scenario does not run a simulation |
+| Health | `/health/indicators` | HealthIndicator[]; value nullable; trend must be empty without evidence |
+| Cost | `/cost/breakdown` | CostBreakdown; no NPV/IRR without a dated investment schedule |
+| Products | `/sales/products` | ProductSales[] from the catalogue; no product breakdown is derived from an imported statement |
+| Channels | `/sales/channels` | ChannelSales[] from the catalogue; no channel split is invented when rows are missing |
+| Sales preview | `POST /sales/preview` | Accepts `{products[], channels[]}`; products need name/category/unitsSold/revenue/cost/turnoverDays; channels need channel/grossSales/commissionFee/adCost/deliveryCost; returns profit and margin from the entered rows, `kind=simulated`, `persisted=false`; never writes to the database |
+| Funder | `/funder/projects` | FunderProject[]; the route uses resolve_principal; do not turn on enforcement before tokens are wired in |
+| Projects | `/projects` | Saved ProjectRecord[]; does not generate report/export files |
+| AI panel | `/ai/explain?page={id}` | Rules-based AIResponse; accepts sme_id/coverage; this GET never calls an LLM |
 
-Overview/Health/AI รับ sme_id และ schedule_complete_through; Cost รับ sme_id.
-Client ปัจจุบันยังไม่ได้ส่งบริบทเหล่านี้ครบทุก getter. acceptedAnalysis แทน GET ของ
-Overview/Health/Cost/AI ในแท็บหลัง analyze สำเร็จ; getter อื่นยังอ่าน DB/default.
-ห้ามคิดว่าการสลับ page ทำให้ทุกหน้าผูก imported input เดียวกันแล้ว
+Overview/Health/AI accept sme_id and schedule_complete_through; Cost accepts sme_id.
+The current client does not yet send this context from every getter. After a successful analyze, acceptedAnalysis replaces the GET for
+Overview/Health/Cost/AI in that tab; other getters still read the database/defaults.
+Do not assume that switching pages binds every page to the same imported input.
 
-## 3. Input / engine / write endpoints ที่มีจริง
+## 3. Input / engine / write endpoints that exist
 
-| Method / path | Request จริง | ผล / ข้อจำกัด |
+| Method / path | Actual request | Result / limits |
 | --- | --- | --- |
-| GET `/analysis/template.xlsx` | ไม่มี body | binary XLSX template Financials |
-| POST `/inputs/manual` | FinancialInput แบบ flat | validated data / balanceSheetValid; ไม่ใช่ analyze |
-| POST `/finance/calculate` | FinancialInput แบบ flat | v1-only legacy calculate; ไม่ใช่ wrapped CalculateRequest |
-| POST `/upload?persist=false` | multipart file, .xlsx ≤5 MiB | input, metrics, businessMetrics, grading, upload metadata; fileStored=false |
-| POST `/calculate` | `{input: FinancialInput, sme_id?:string, persist?:boolean}` | metrics/businessMetrics/grading; persisted/recordId ตาม write จริง |
-| POST `/analyze` | `{input, shop_name?, use_llm?, sme_id?, schedule_complete_through?}` | data + views Overview/Health/Cost/AI, source/inputHash; stateless |
-| POST `/swarm` | order terms + shops inline หรือ sme_ids; persist=false สำหรับ preview | allocation totals/shops/stuckReasons + audit.eligibility; ไม่รับสมาชิก 6 ร้านตายตัว |
-| GET `/simulator/context` | ไม่มี body | SwarmRequest machine fields จาก active project/shops/resources; 503 ถ้าไม่ตั้ง DATABASE_URL |
-| POST `/simulate` | `{input, scenario, swarm?, sme_id?, persist?, scenario_key?}` | statement Plan A/B, metrics/grading/delta; ไม่ได้สร้าง analysis findings ใหม่ |
-| POST `/simulate/order` | `{baseline, scenario:{unit_price,cost_per_unit,deposit_ratio,payment_terms_days}, persist:false, context_missing:[]}` | order Plan A/B, audit, scope=order_only; persist=true เก็บ full replay input/results + simulationId |
-| POST `/match-funding` | query sme_id, amount?, project_id?, persist?; ไม่มี JSON body | จัดอันดับ debt/equity จาก stored SME; ไม่ใช่ loan application |
-| GET `/forecast` | query sme_id, as_of?, project_obligations?, schedule_complete_through? | dated forecast/conditional values; default project_obligations=true อาจ upsert cash events |
-| GET `/industry/trends` | query sector?, force_refresh? | provider/cache status + articles/signals; ยังไม่ยืนยันข่าวสดสำเร็จ ไม่ force ระหว่าง acceptance ปกติ |
+| GET `/analysis/template.xlsx` | No body | Binary XLSX Financials template |
+| POST `/inputs/manual` | Flat FinancialInput | Validated data / balanceSheetValid; not an analysis |
+| POST `/finance/calculate` | Flat FinancialInput | v1-only legacy calculate; not the wrapped CalculateRequest |
+| POST `/upload?persist=false` | Multipart file, .xlsx ≤ 5 MiB | input, metrics, businessMetrics, grading, upload metadata; fileStored=false |
+| POST `/calculate` | `{input: FinancialInput, sme_id?:string, persist?:boolean}` | metrics/businessMetrics/grading; persisted/recordId reflect the actual write |
+| POST `/analyze` | `{input, shop_name?, use_llm?, sme_id?, schedule_complete_through?}` | data + Overview/Health/Cost/AI views, source/inputHash; stateless |
+| POST `/swarm` | Order terms + inline shops or sme_ids; persist=false for a preview | Allocation totals/shops/stuckReasons + audit.eligibility; no fixed six-shop membership |
+| GET `/simulator/context` | No body | SwarmRequest machine fields from the active project/shops/resources; 503 when DATABASE_URL is not set |
+| POST `/simulate` | `{input, scenario, swarm?, sme_id?, persist?, scenario_key?}` | Statement Plan A/B, metrics/grading/delta; does not produce new analysis findings |
+| POST `/simulate/order` | `{baseline, scenario:{unit_price,cost_per_unit,deposit_ratio,payment_terms_days}, persist:false, context_missing:[]}` | Order Plan A/B, audit, scope=order_only; persist=true stores the full replay input/results + simulationId |
+| POST `/match-funding` | Query sme_id, amount?, project_id?, persist?; no JSON body | Ranks debt/equity for a stored SME; not a loan application |
+| GET `/forecast` | Query sme_id, as_of?, project_obligations?, schedule_complete_through? | Dated forecast/conditional values; the default project_obligations=true may upsert cash events |
+| GET `/industry/trends` | Query sector?, force_refresh? | Provider/cache status + articles/signals; a successful live feed is not yet confirmed; do not force a refresh during normal acceptance |
 
-`/calculate/excel`, `/analyze/excel` ใช้ multipart file; v1-only `/inputs/excel` และ
-`/finance/calculate/excel` ยังมี. Main router paths มีทั้ง `/api` และ `/api/v1` aliases.
-Auth มี POST `/auth/login`, `/auth/logout`, `/auth/revoke-all`, `/auth/revoke` และ
-GET `/auth/me`; token/revoke ไม่ใช่การสลับ role ใน AppHeader
+`/calculate/excel` and `/analyze/excel` take a multipart file; the v1-only `/inputs/excel` and
+`/finance/calculate/excel` still exist. Main router paths have both `/api` and `/api/v1` aliases.
+Auth provides POST `/auth/login`, `/auth/logout`, `/auth/revoke-all`, `/auth/revoke` and
+GET `/auth/me`; tokens/revocation are not the role switcher in AppHeader.
 
-## 4. Validation, precision และ scope
+## 4. Validation, precision, and scope
 
-- 7 required FinancialInput fields: currency, kind, period_start, period_end, assets,
-  liabilities, equity. optional ว่างให้ละ ไม่แปลงเป็น 0. assets=liabilities+equity ภายใน tolerance.
-- เงิน/rate ใช้ decimal strings; units_sold/จำนวนงวด/เครดิตเป็น JSON integers.
-  deposit_ratio เป็น 0..1 ไม่ใช่เปอร์เซ็นต์ 0..100. cost_per_unit=null ใน order scenario
-  คงต้นทุนแต่ละร้าน; override คือสมมติฐานเดียวกันทุก candidate แล้วจัดสรรใหม่.
-- Input ผิด HTTP422; workbook เกินขนาด HTTP413. HTTP200 + insufficient_data เป็น partial
-  result ให้ใช้ส่วนที่มีหลักฐานและบอกส่วนที่ขาด ไม่ค้าง skeleton ทั้งหน้า.
-- Order profit เป็นก่อนค่าใช้จ่ายอื่น; minimumShopCash คือเงินต่ำสุดของร้านที่รับงาน
-  ไม่ใช่ผลรวม surplus ข้ามร้านหรือ forecast ทั้งกิจการ 90 วัน.
-- SWARM persist=false ไม่จอง quota/resources; persist=true เปลี่ยน stored allocations.
-  Calculate/upload persistence ต้องมี SME จริง; ชื่อ free text ไม่ใช่ identity.
-- Preview/default/sample ไม่ใช่ plan ที่ผู้ใช้ลงนามแล้ว. เมื่อ input/context เปลี่ยนต้องไม่ใช้
-  stale response หรือ generic default SME มาทับผลล่าสุด
+- The 7 required FinancialInput fields: currency, kind, period_start, period_end, assets,
+  liabilities, equity. Omit empty optional fields; never convert them to 0. assets=liabilities+equity within tolerance.
+- Money/rates use decimal strings; units_sold, number of installments, and credit days are JSON integers.
+  deposit_ratio is 0..1, not a 0..100 percentage. cost_per_unit=null in an order scenario
+  keeps each shop's own cost; an override applies the same assumption to every candidate and re-allocates.
+- Invalid input returns HTTP 422; an oversized workbook returns HTTP 413. HTTP 200 + insufficient_data is a partial
+  result: use the parts that have evidence and state what is missing; never leave the whole page on a skeleton.
+- Order profit is before other expenses; minimumShopCash is the lowest cash of a participating shop,
+  not a sum of surpluses across shops or a 90-day whole-business forecast.
+- SWARM persist=false does not reserve quota/resources; persist=true changes the stored allocations.
+  Calculate/upload persistence requires a real SME; a free-text name is not an identity.
+- A preview/default/sample is not a plan the user has signed. When the input/context changes, never let a
+  stale response or a generic default SME overwrite the latest result.
 
-## 5. ปุ่มที่ยังไม่มี backend operation
+## 5. Buttons that have no backend operation yet
 
 Funding application, agreement signing, funder document request, report/PDF export,
-resource-detach recomputation และ Chaos apply ยังมี handler ฝั่ง UI/demo.
-Saved simulation มี POST save แต่ยังไม่มี GET read/list/replay endpoint.
-ห้ามต่อกับ path เดาหรือแจ้ง success จาก timer/local state.
-ให้ CODEX ทำ backend contract + tests/read-back หรือ wiring unavailable ที่ตรงความจริง
-ก่อนส่งทีม frontend ทำ presentation; ดู backlog/acceptance ใน handoff
+resource-detach recomputation, and Chaos apply still have UI/demo-side handlers only.
+Saved simulations now have read/list/replay endpoints: GET `/simulations`, GET `/simulations/{simulation_id}`, and POST `/simulations/{simulation_id}/replay` (database required).
+Never wire these to guessed paths or report success from a timer/local state.
+CODEX should build the backend contract + tests/read-back, or wire an honest unavailable state,
+before handing presentation work to the frontend team; see the backlog/acceptance criteria in the handoff.
 
-AI evidence ใช้ evidenceIds/dataUsed.targetElementId จากผล SME/input เดียวกับตัวเลข.
-Animation/Story/Phase เป็น presentation ไม่ใช่หลักฐานว่า engine หรือ write ถูกเรียกแล้ว
+AI evidence uses evidenceIds/dataUsed.targetElementId from the same SME/input result as the numbers.
+Animation/Story/Phase is presentation only, not evidence that the engine or a write was called.
 
 ## Excel preview addition — 2026-10-17
 

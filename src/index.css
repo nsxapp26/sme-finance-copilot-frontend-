@@ -622,6 +622,12 @@ html.dark .hover\:text-resource-dark:hover { color: #3FD9C8; }
 :where(html.dark) .text-danger-dark { color: #FF9A9E; }
 :where(html.dark) .text-attention-dark { color: #FBBF5A; }
 
+/* Light gradient stops used on callout cards */
+:where(html.dark) .via-white { --tw-gradient-stops: var(--tw-gradient-from), rgb(var(--c-surface)) var(--tw-gradient-via-position, 50%), var(--tw-gradient-to); }
+:where(html.dark) .from-white { --tw-gradient-from: rgb(var(--c-surface)) var(--tw-gradient-from-position, 0%); --tw-gradient-to: rgb(var(--c-surface) / 0) var(--tw-gradient-to-position, 100%); --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to); }
+:where(html.dark) .to-amber-50\/50 { --tw-gradient-to: rgba(245, 158, 11, 0.10) var(--tw-gradient-to-position, 100%); }
+:where(html.dark) .to-emerald-50\/50 { --tw-gradient-to: rgba(16, 185, 129, 0.10) var(--tw-gradient-to-position, 100%); }
+
 /* Component pieces with hard-coded light colors */
 html.dark .glass-panel { background: rgba(15, 24, 56, 0.82); }
 html.dark .page-header {
